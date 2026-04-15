@@ -1,0 +1,247 @@
+{
+  "week": "2026-W16",
+  "dietitian": "Uzman Diyetisyen Pınar Ezgi",
+  "notes": [
+    "Sabah uyanınca 1 büyük bardak su içilerek başlansın.",
+    "Akşam yemeğinden sonra herhangi bir şey tüketilmemeye çalışılsın."
+  ],
+  "slots": [
+    {
+      "id": "ilk-ogun",
+      "label": "İlk Öğün",
+      "time": "09:00 - 10:00",
+      "overcapacity": false,
+      "options": [
+        {
+          "id": "beyaz-smoothie",
+          "name": "Beyaz Smoothie",
+          "maxPerWeek": 2,
+          "ingredients": [
+            {"name": "Hurma", "amount": 3, "unit": "adet"},
+            {"name": "Ceviz veya kaju", "amount": 5, "unit": "adet"},
+            {"name": "Tarçın", "amount": 1, "unit": "tutam"},
+            {"name": "Yarım yağlı süt", "amount": 1.5, "unit": "sb"}
+          ],
+          "nutrition": {"kcal": 395, "protein": 11, "carb": 52, "fat": 17, "fiber": 4},
+          "recipe": null
+        },
+        {
+          "id": "omlet",
+          "name": "Mantarlı/Ispanaklı Omlet",
+          "maxPerWeek": 2,
+          "ingredients": [
+            {"name": "Yumurta", "amount": 2, "unit": "adet"},
+            {"name": "Beyaz veya lor peyniri", "amount": 2, "unit": "yk"},
+            {"name": "Mantar veya ıspanak", "amount": 1, "unit": "avuç"},
+            {"name": "Yeşil zeytin", "amount": 8, "unit": "adet"},
+            {"name": "Beyaz peynir", "amount": 1, "unit": "dilim"},
+            {"name": "Yeşillik, salatalık, domates", "amount": 1, "unit": "porsiyon", "note": "sınırsız, yağsız"}
+          ],
+          "nutrition": {"kcal": 420, "protein": 28, "carb": 5, "fat": 32, "fiber": 2},
+          "recipe": null
+        },
+        {
+          "id": "haslanmis-yumurta",
+          "name": "Haşlanmış Yumurta Tabağı",
+          "maxPerWeek": 3,
+          "ingredients": [
+            {"name": "Haşlanmış yumurta", "amount": 2, "unit": "adet"},
+            {"name": "Peynir (3 parmak kalınlığında)", "amount": 1.5, "unit": "dilim"},
+            {"name": "Ceviz içi", "amount": 4, "unit": "adet"},
+            {"name": "Yeşillik, salatalık, domates", "amount": 1, "unit": "porsiyon", "note": "sınırsız, yağsız"},
+            {"name": "Tam buğday ekmek", "amount": 1, "unit": "dilim"}
+          ],
+          "nutrition": {"kcal": 445, "protein": 26, "carb": 20, "fat": 30, "fiber": 3},
+          "recipe": null
+        }
+      ]
+    },
+    {
+      "id": "ara-1",
+      "label": "1. Ara Öğün",
+      "time": "12:30 - 13:00",
+      "overcapacity": false,
+      "options": [
+        {
+          "id": "elma-mersini",
+          "name": "Yeşil Elma / Yaban Mersini",
+          "maxPerWeek": 2,
+          "ingredients": [
+            {"name": "Yeşil elma veya yaban mersini", "amount": 1, "unit": "adet/avuç"}
+          ],
+          "nutrition": {"kcal": 95, "protein": 1, "carb": 25, "fat": 0, "fiber": 4},
+          "recipe": null
+        },
+        {
+          "id": "soda-badem",
+          "name": "Soda + Çiğ Badem",
+          "maxPerWeek": 2,
+          "ingredients": [
+            {"name": "Sade soda", "amount": 1, "unit": "bardak"},
+            {"name": "Çiğ badem", "amount": 15, "unit": "adet"}
+          ],
+          "nutrition": {"kcal": 105, "protein": 4, "carb": 4, "fat": 9, "fiber": 2},
+          "recipe": null
+        },
+        {
+          "id": "kefir-kaju",
+          "name": "Kefir/Ayran + Kaju/Badem",
+          "maxPerWeek": 3,
+          "ingredients": [
+            {"name": "Sade kefir veya ayran", "amount": 1, "unit": "bardak"},
+            {"name": "Çiğ kaju veya badem", "amount": 5, "unit": "adet"}
+          ],
+          "nutrition": {"kcal": 110, "protein": 5, "carb": 7, "fat": 7, "fiber": 1},
+          "recipe": null
+        }
+      ]
+    },
+    {
+      "id": "ara-2",
+      "label": "2. Ara Öğün",
+      "time": "16:30 - 17:00",
+      "overcapacity": false,
+      "options": [
+        {
+          "id": "wasa-fistik",
+          "name": "Wasa + Fıstık Ezmesi + Meyve",
+          "maxPerWeek": 2,
+          "ingredients": [
+            {"name": "Wasa ekmek veya pirinç patlağı", "amount": 1, "unit": "dilim"},
+            {"name": "Şekersiz fıstık ezmesi", "amount": 1, "unit": "yk"},
+            {"name": "Muz/elma/çilek (dilimlenmiş)", "amount": 1, "unit": "porsiyon"}
+          ],
+          "nutrition": {"kcal": 185, "protein": 5, "carb": 22, "fat": 9, "fiber": 2},
+          "recipe": null
+        },
+        {
+          "id": "meyve-2",
+          "name": "Meyve (Elma/Muz/Mersini)",
+          "maxPerWeek": 3,
+          "ingredients": [
+            {"name": "Yeşil elma veya ufak muz veya yaban mersini", "amount": 1, "unit": "adet/avuç"}
+          ],
+          "nutrition": {"kcal": 95, "protein": 1, "carb": 25, "fat": 0, "fiber": 3},
+          "recipe": null
+        },
+        {
+          "id": "activia-chia",
+          "name": "Activia Yoğurt + Chia",
+          "maxPerWeek": 2,
+          "ingredients": [
+            {"name": "Activia yoğurt", "amount": 1, "unit": "kutu"},
+            {"name": "Chia tohumu", "amount": 1, "unit": "tk"}
+          ],
+          "nutrition": {"kcal": 100, "protein": 5, "carb": 12, "fat": 4, "fiber": 3},
+          "recipe": null
+        }
+      ]
+    },
+    {
+      "id": "aksam",
+      "label": "Akşam Yemeği",
+      "time": "21:30",
+      "overcapacity": true,
+      "options": [
+        {
+          "id": "somon-salata",
+          "name": "Fırında Somon + Patates + Salata",
+          "maxPerWeek": 1,
+          "ingredients": [
+            {"name": "Norveç somonu", "amount": 1, "unit": "dilim"},
+            {"name": "Patates (fırında)", "amount": 5, "unit": "dilim"},
+            {"name": "Zeytinyağı (marine)", "amount": 1, "unit": "yk"},
+            {"name": "4 Renkli salata (havuç, mor lahana, turp, marul)", "amount": 1, "unit": "porsiyon"},
+            {"name": "Zeytinyağı (salata)", "amount": 2, "unit": "yk"},
+            {"name": "Limon suyu", "amount": 1, "unit": "miktar"}
+          ],
+          "nutrition": {"kcal": 620, "protein": 32, "carb": 35, "fat": 38, "fiber": 5},
+          "recipe": null
+        },
+        {
+          "id": "baklagil-salata",
+          "name": "Baklagilli Salata",
+          "maxPerWeek": 1,
+          "ingredients": [
+            {"name": "Karışık sebze salatası", "amount": 1, "unit": "kase"},
+            {"name": "Haşlanmış mercimek veya maş fasulyesi", "amount": 5, "unit": "yk"},
+            {"name": "Haşlanmış mısır", "amount": 2, "unit": "yk"},
+            {"name": "Zeytinyağı", "amount": 2, "unit": "yk"},
+            {"name": "Limon, sirke, nar ekşisi", "amount": 1, "unit": "miktar"}
+          ],
+          "nutrition": {"kcal": 390, "protein": 16, "carb": 38, "fat": 20, "fiber": 10},
+          "recipe": null
+        },
+        {
+          "id": "sebze-yemegi",
+          "name": "Sebze Yemeği + Yoğurt",
+          "maxPerWeek": 3,
+          "ingredients": [
+            {"name": "Sebze yemeği (kabak sıyırma, taze fasulye vb.)", "amount": 12, "unit": "yk"},
+            {"name": "Yoğurt", "amount": 4, "unit": "yk"},
+            {"name": "Tam buğday ekmek", "amount": 0.5, "unit": "dilim"}
+          ],
+          "nutrition": {"kcal": 280, "protein": 10, "carb": 25, "fat": 16, "fiber": 6},
+          "recipe": "Girit Usulü Kabak Sıyırma"
+        },
+        {
+          "id": "tavuklu-salata",
+          "name": "Yoğurt Soslu Tavuklu Salata",
+          "maxPerWeek": 2,
+          "ingredients": [
+            {"name": "Doğranmış marul", "amount": 1, "unit": "avuç"},
+            {"name": "Haşlanmış tavuk göğsü", "amount": 60, "unit": "g"},
+            {"name": "Közlenmiş kırmızı biber", "amount": 1, "unit": "adet"},
+            {"name": "Konserve mısır", "amount": 2, "unit": "yk"},
+            {"name": "Yoğurt", "amount": 4, "unit": "yk"},
+            {"name": "Light mayonez", "amount": 1, "unit": "tk", "note": "isteğe bağlı"}
+          ],
+          "nutrition": {"kcal": 250, "protein": 24, "carb": 15, "fat": 10, "fiber": 3},
+          "recipe": null
+        },
+        {
+          "id": "kofte-pilav",
+          "name": "Köfte + Pirinç Pilavı + Salata",
+          "maxPerWeek": 1,
+          "ingredients": [
+            {"name": "Köfte", "amount": 4, "unit": "adet"},
+            {"name": "Basmati pirinç pilavı", "amount": 6, "unit": "yk"},
+            {"name": "Pancarlı salata", "amount": 1, "unit": "porsiyon"},
+            {"name": "Zeytinyağı (salata)", "amount": 2, "unit": "yk"}
+          ],
+          "nutrition": {"kcal": 700, "protein": 38, "carb": 58, "fat": 35, "fiber": 4},
+          "recipe": null
+        }
+      ]
+    },
+    {
+      "id": "gece-atistirma",
+      "label": "Gece Atıştırma (Opsiyonel)",
+      "time": "Akşam sonrası",
+      "overcapacity": false,
+      "options": [
+        {
+          "id": "yogurt-sebze",
+          "name": "Yoğurt + Sebze Dilimleri",
+          "maxPerWeek": 3,
+          "ingredients": [
+            {"name": "Yoğurt", "amount": 1, "unit": "yk"},
+            {"name": "Salatalık ve havuç dilimleri", "amount": 1, "unit": "porsiyon"}
+          ],
+          "nutrition": {"kcal": 45, "protein": 2, "carb": 5, "fat": 2, "fiber": 1},
+          "recipe": null
+        },
+        {
+          "id": "mersini-gece",
+          "name": "Yaban Mersini",
+          "maxPerWeek": 3,
+          "ingredients": [
+            {"name": "Yaban mersini", "amount": 1.5, "unit": "avuç"}
+          ],
+          "nutrition": {"kcal": 65, "protein": 1, "carb": 16, "fat": 0, "fiber": 3},
+          "recipe": null
+        }
+      ]
+    }
+  ]
+}
