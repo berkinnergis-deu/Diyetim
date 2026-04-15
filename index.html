@@ -11,1009 +11,280 @@
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <title>Diyetim</title>
 <style>
-:root {
-  --bg: #FFF8F0;
-  --bg2: #FFF1E6;
-  --bg3: #FFE8D6;
-  --surface: #FFFFFF;
-  --surface2: #F5EDE4;
-  --text: #1C1917;
-  --text2: #57534E;
-  --text3: #A8A29E;
-  --primary: #C4572A;
-  --primary-soft: #C4572A18;
-  --primary-med: #C4572A30;
-  --green: #3D7A4A;
-  --green-soft: #3D7A4A18;
-  --amber: #B45309;
-  --amber-soft: #B4530918;
-  --red: #C4572A;
-  --red-soft: #C4572A18;
-  --blue: #2563EB;
-  --blue-soft: #2563EB18;
-  --border: #E7DDD3;
-  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-lg: 0 4px 12px rgba(0,0,0,0.08);
-  --radius: 14px;
-  --radius-sm: 8px;
-  --tab-h: 64px;
-  --header-h: 56px;
-  --safe-b: env(safe-area-inset-bottom, 0px);
-}
-[data-theme="dark"] {
-  --bg: #0F0E0D;
-  --bg2: #1A1918;
-  --bg3: #252321;
-  --surface: #1E1D1B;
-  --surface2: #2A2826;
-  --text: #F5F0EB;
-  --text2: #A8A29E;
-  --text3: #6B6560;
-  --primary: #E8845C;
-  --primary-soft: #E8845C20;
-  --primary-med: #E8845C35;
-  --green: #6BBF73;
-  --green-soft: #6BBF7320;
-  --amber: #F59E0B;
-  --amber-soft: #F59E0B20;
-  --red: #EF4444;
-  --red-soft: #EF444420;
-  --blue: #60A5FA;
-  --blue-soft: #60A5FA20;
-  --border: #2E2C2A;
-  --shadow: 0 1px 3px rgba(0,0,0,0.3);
-  --shadow-lg: 0 4px 12px rgba(0,0,0,0.4);
-}
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-  font-family: 'Nunito', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100dvh;
-  -webkit-tap-highlight-color: transparent;
-  overscroll-behavior: none;
-}
-button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
-input, textarea { font-family: inherit; }
-
-/* Layout */
-.app { display: flex; flex-direction: column; min-height: 100dvh; }
-.header {
-  height: var(--header-h);
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 16px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  position: sticky; top: 0; z-index: 50;
-}
-.header h1 { font-size: 20px; font-weight: 800; color: var(--primary); letter-spacing: -0.3px; }
-.header-sub { font-size: 11px; color: var(--text3); font-weight: 600; }
-.main { flex: 1; padding-bottom: calc(var(--tab-h) + var(--safe-b) + 8px); overflow-y: auto; }
-.tab-bar {
-  position: fixed; bottom: 0; left: 0; right: 0;
-  height: calc(var(--tab-h) + var(--safe-b));
-  padding-bottom: var(--safe-b);
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  display: flex; z-index: 50;
-}
-.tab-btn {
-  flex: 1; display: flex; flex-direction: column; align-items: center;
-  justify-content: center; gap: 2px;
-  font-size: 10px; font-weight: 700; color: var(--text3);
-  transition: color 0.15s;
-}
-.tab-btn.active { color: var(--primary); }
-.tab-btn svg { width: 22px; height: 22px; }
-.tab-btn.active svg { stroke-width: 2.5; }
-.view { display: none; }
-.view.active { display: block; }
-
-/* Day selector */
-.day-strip {
-  display: flex; gap: 6px; padding: 12px 16px;
-  overflow-x: auto; -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-.day-strip::-webkit-scrollbar { display: none; }
-.day-chip {
-  flex-shrink: 0;
-  width: 50px; height: 54px;
-  border-radius: var(--radius-sm);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 1px;
-  background: var(--surface);
-  border: 2px solid var(--border);
-  font-weight: 700; font-size: 11px; color: var(--text2);
-  transition: all 0.15s;
-}
-.day-chip span:first-child { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; }
-.day-chip.active { background: var(--primary); border-color: var(--primary); color: #fff; }
-.day-chip.active span:first-child { color: rgba(255,255,255,0.8); }
-.day-chip.filled::after {
-  content: ''; display: block; width: 5px; height: 5px;
-  border-radius: 50%; background: var(--green); margin-top: 1px;
-}
-.day-chip.active.filled::after { background: rgba(255,255,255,0.7); }
-
-/* Slot cards */
-.slots-container { padding: 0 12px 16px; display: flex; flex-direction: column; gap: 10px; }
-.slot-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px 16px;
-  box-shadow: var(--shadow);
-  transition: all 0.15s;
-}
-.slot-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.slot-label { font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--text3); letter-spacing: 0.5px; }
-.slot-time { font-size: 11px; color: var(--text3); }
-.slot-assigned {
-  background: var(--green-soft);
-  border: 1px solid var(--green);
-  border-radius: var(--radius-sm);
-  padding: 10px 12px;
-  display: flex; justify-content: space-between; align-items: center;
-  cursor: pointer;
-}
-.slot-assigned-name { font-weight: 700; font-size: 14px; color: var(--green); }
-.slot-assigned-kcal { font-size: 12px; font-weight: 700; color: var(--text2); }
-.slot-empty {
-  border: 2px dashed var(--border);
-  border-radius: var(--radius-sm);
-  padding: 14px;
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-  color: var(--text3); font-weight: 700; font-size: 13px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.slot-empty:active { background: var(--primary-soft); border-color: var(--primary); color: var(--primary); }
-.slot-remove {
-  width: 28px; height: 28px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--red); font-size: 18px; font-weight: 800;
-  transition: background 0.15s;
-}
-.slot-remove:active { background: var(--red-soft); }
-
-/* Bottom sheet */
-.sheet-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.4);
-  z-index: 100; opacity: 0; pointer-events: none;
-  transition: opacity 0.2s;
-}
-.sheet-overlay.open { opacity: 1; pointer-events: all; }
-.sheet {
-  position: fixed; bottom: 0; left: 0; right: 0;
-  max-height: 75dvh;
-  background: var(--surface);
-  border-radius: 20px 20px 0 0;
-  z-index: 101;
-  transform: translateY(100%);
-  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
-  display: flex; flex-direction: column;
-  padding-bottom: var(--safe-b);
-}
-.sheet.open { transform: translateY(0); }
-.sheet-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 10px auto 0; flex-shrink: 0; }
-.sheet-title { padding: 12px 20px 8px; font-size: 16px; font-weight: 800; flex-shrink: 0; }
-.sheet-body { overflow-y: auto; padding: 0 16px 20px; -webkit-overflow-scrolling: touch; }
-.option-card {
-  background: var(--bg2);
-  border: 2px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px;
-  margin-bottom: 10px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.option-card:active { transform: scale(0.98); }
-.option-card.disabled { opacity: 0.35; pointer-events: none; }
-.option-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-.option-name { font-weight: 700; font-size: 15px; }
-.option-badge {
-  font-size: 11px; font-weight: 800;
-  padding: 2px 8px; border-radius: 99px;
-  background: var(--primary-soft); color: var(--primary);
-}
-.option-badge.zero { background: var(--red-soft); color: var(--red); }
-.option-ingredients { font-size: 12px; color: var(--text2); line-height: 1.5; }
-.option-macros {
-  display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;
-}
-.macro-pill {
-  font-size: 11px; font-weight: 700; padding: 3px 8px;
-  border-radius: 6px; background: var(--surface);
-}
-.macro-pill.kcal { color: var(--primary); }
-.macro-pill.p { color: var(--blue); }
-.macro-pill.c { color: var(--amber); }
-.macro-pill.f { color: var(--red); }
-
-/* Nutrition view */
-.nutr-day-header { padding: 16px 16px 8px; font-size: 14px; font-weight: 800; color: var(--text2); }
-.nutr-totals {
-  display: grid; grid-template-columns: repeat(2, 1fr);
-  gap: 8px; padding: 0 12px 8px;
-}
-.nutr-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px;
-  text-align: center;
-  box-shadow: var(--shadow);
-}
-.nutr-card.wide { grid-column: span 2; }
-.nutr-val { font-size: 28px; font-weight: 800; letter-spacing: -1px; }
-.nutr-val.kcal { color: var(--primary); }
-.nutr-val.p { color: var(--blue); }
-.nutr-val.c { color: var(--amber); }
-.nutr-val.f { color: var(--red); }
-.nutr-val.fi { color: var(--green); }
-.nutr-label { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; margin-top: 2px; }
-.nutr-bar-wrap { margin-top: 8px; height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
-.nutr-bar { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
-
-/* Week summary */
-.week-summary { padding: 12px; }
-.week-summary-title { font-size: 14px; font-weight: 800; color: var(--text2); margin-bottom: 8px; padding: 0 4px; }
-.ws-row {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 10px 12px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  margin-bottom: 6px;
-}
-.ws-label { font-size: 13px; font-weight: 700; }
-.ws-val { font-size: 13px; font-weight: 800; }
-
-/* Settings / Import */
-.settings-section { padding: 16px; }
-.settings-section h2 { font-size: 15px; font-weight: 800; margin-bottom: 12px; color: var(--text2); }
-.import-area {
-  width: 100%;
-  min-height: 120px;
-  background: var(--bg2);
-  border: 2px solid var(--border);
-  border-radius: var(--radius);
-  padding: 12px;
-  font-size: 13px;
-  color: var(--text);
-  resize: vertical;
-  font-family: 'Courier New', monospace;
-}
-.import-area:focus { outline: none; border-color: var(--primary); }
-.btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  padding: 12px 20px;
-  border-radius: var(--radius-sm);
-  font-size: 14px; font-weight: 700;
-  min-height: 48px;
-  transition: all 0.15s;
-}
-.btn-primary { background: var(--primary); color: #fff; width: 100%; }
-.btn-primary:active { opacity: 0.85; transform: scale(0.98); }
-.btn-outline {
-  background: transparent; color: var(--primary);
-  border: 2px solid var(--primary);
-  width: 100%;
-}
-.btn-danger { background: var(--red-soft); color: var(--red); width: 100%; }
-.btn + .btn { margin-top: 8px; }
-.msg {
-  padding: 10px 14px;
-  border-radius: var(--radius-sm);
-  font-size: 13px; font-weight: 600;
-  margin-bottom: 12px;
-}
-.msg-ok { background: var(--green-soft); color: var(--green); }
-.msg-err { background: var(--red-soft); color: var(--red); }
-
-/* Empty state */
-.empty-state {
-  display: flex; flex-direction: column; align-items: center;
-  justify-content: center; padding: 48px 32px;
-  text-align: center;
-}
-.empty-icon { font-size: 48px; margin-bottom: 12px; }
-.empty-title { font-size: 18px; font-weight: 800; margin-bottom: 6px; }
-.empty-desc { font-size: 13px; color: var(--text2); line-height: 1.5; max-width: 280px; }
-.empty-desc a { color: var(--primary); text-decoration: underline; cursor: pointer; }
-
-/* Toggle */
-.toggle-row {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--border);
-}
-.toggle-row:last-child { border-bottom: none; }
-.toggle-label { font-size: 14px; font-weight: 700; }
-.toggle {
-  width: 48px; height: 28px;
-  background: var(--bg3);
-  border-radius: 14px;
-  position: relative;
-  transition: background 0.2s;
-  cursor: pointer;
-}
-.toggle.on { background: var(--primary); }
-.toggle::after {
-  content: '';
-  position: absolute;
-  width: 22px; height: 22px;
-  background: #fff;
-  border-radius: 50%;
-  top: 3px; left: 3px;
-  transition: transform 0.2s;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-}
-.toggle.on::after { transform: translateX(20px); }
-
-/* History */
-.history-item {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px 16px;
-  margin: 0 12px 8px;
-  display: flex; justify-content: space-between; align-items: center;
-  cursor: pointer;
-}
-.history-item:active { background: var(--bg2); }
-.hist-week { font-weight: 700; font-size: 14px; }
-.hist-detail { font-size: 12px; color: var(--text2); }
-.hist-arrow { color: var(--text3); font-size: 18px; }
-
-/* Plan info bar */
-.plan-info {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 16px;
-  background: var(--primary-soft);
-  border-bottom: 1px solid var(--primary-med);
-  font-size: 12px; font-weight: 700; color: var(--primary);
-}
-
-/* Slot note */
-.slot-note { font-size: 11px; color: var(--text3); font-style: italic; margin-top: 4px; }
-
-/* Frequency overview */
-.freq-overview { padding: 0 12px 12px; }
-.freq-slot-title { font-size: 12px; font-weight: 800; color: var(--text3); text-transform: uppercase; padding: 8px 4px 4px; }
-.freq-row {
-  display: flex; align-items: center; gap: 8px;
-  padding: 6px 8px;
-  font-size: 13px;
-}
-.freq-dots { display: flex; gap: 3px; }
-.freq-dot {
-  width: 10px; height: 10px;
-  border-radius: 50%;
-  border: 2px solid var(--border);
-}
-.freq-dot.used { background: var(--green); border-color: var(--green); }
-.freq-name { font-weight: 600; color: var(--text2); flex: 1; }
-
-@media (min-width: 640px) {
-  .main { max-width: 480px; margin: 0 auto; }
-  .tab-bar { max-width: 480px; left: 50%; transform: translateX(-50%); border-radius: 16px 16px 0 0; }
-}
+:root{--bg:#FFF8F0;--bg2:#FFF1E6;--bg3:#FFE8D6;--surface:#FFFFFF;--surface2:#F5EDE4;--text:#1C1917;--text2:#57534E;--text3:#A8A29E;--primary:#C4572A;--primary-soft:#C4572A18;--primary-med:#C4572A30;--green:#3D7A4A;--green-soft:#3D7A4A18;--amber:#B45309;--amber-soft:#B4530918;--red:#C4572A;--red-soft:#C4572A18;--blue:#2563EB;--blue-soft:#2563EB18;--cyan:#0891B2;--cyan-soft:#0891B220;--border:#E7DDD3;--shadow:0 1px 3px rgba(0,0,0,0.06),0 1px 2px rgba(0,0,0,0.04);--shadow-lg:0 4px 12px rgba(0,0,0,0.08);--radius:14px;--radius-sm:8px;--tab-h:64px;--header-h:56px;--safe-b:env(safe-area-inset-bottom,0px);--safe-t:env(safe-area-inset-top,0px)}
+[data-theme="dark"]{--bg:#0F0E0D;--bg2:#1A1918;--bg3:#252321;--surface:#1E1D1B;--surface2:#2A2826;--text:#F5F0EB;--text2:#A8A29E;--text3:#6B6560;--primary:#E8845C;--primary-soft:#E8845C20;--primary-med:#E8845C35;--green:#6BBF73;--green-soft:#6BBF7320;--amber:#F59E0B;--amber-soft:#F59E0B20;--red:#EF4444;--red-soft:#EF444420;--blue:#60A5FA;--blue-soft:#60A5FA20;--cyan:#22D3EE;--cyan-soft:#22D3EE20;--border:#2E2C2A;--shadow:0 1px 3px rgba(0,0,0,0.3);--shadow-lg:0 4px 12px rgba(0,0,0,0.4)}
+*{margin:0;padding:0;box-sizing:border-box}html{height:100%}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);height:100%;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}input,textarea{font-family:inherit}
+.app{display:flex;flex-direction:column;height:100dvh;height:100vh;overflow:hidden;position:relative}
+.header{height:var(--header-h);min-height:var(--header-h);display:flex;align-items:center;justify-content:space-between;padding:0 16px;padding-top:var(--safe-t);background:var(--surface);border-bottom:1px solid var(--border);z-index:50;flex-shrink:0}
+.header h1{font-size:20px;font-weight:800;color:var(--primary);letter-spacing:-0.3px}
+.header-sub{font-size:11px;color:var(--text3);font-weight:600}
+.plan-info{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;background:var(--primary-soft);border-bottom:1px solid var(--primary-med);font-size:12px;font-weight:700;color:var(--primary);flex-shrink:0}
+.main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.tab-bar{height:calc(var(--tab-h) + var(--safe-b));min-height:calc(var(--tab-h) + var(--safe-b));padding-bottom:var(--safe-b);background:var(--surface);border-top:1px solid var(--border);display:flex;z-index:50;flex-shrink:0}
+.tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10px;font-weight:700;color:var(--text3);transition:color 0.15s}
+.tab-btn.active{color:var(--primary)}.tab-btn svg{width:22px;height:22px}.tab-btn.active svg{stroke-width:2.5}
+.view{display:none}.view.active{display:block}
+.day-strip{display:flex;gap:6px;padding:12px 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-shrink:0}
+.day-strip::-webkit-scrollbar{display:none}
+.day-chip{flex-shrink:0;width:50px;height:54px;border-radius:var(--radius-sm);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;background:var(--surface);border:2px solid var(--border);font-weight:700;font-size:11px;color:var(--text2);transition:all 0.15s}
+.day-chip span:first-child{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase}
+.day-chip.active{background:var(--primary);border-color:var(--primary);color:#fff}
+.day-chip.active span:first-child{color:rgba(255,255,255,0.8)}
+.day-chip.filled::after{content:'';display:block;width:5px;height:5px;border-radius:50%;background:var(--green);margin-top:1px}
+.day-chip.active.filled::after{background:rgba(255,255,255,0.7)}
+.slots-container{padding:0 12px 16px;display:flex;flex-direction:column;gap:10px}
+.slot-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow)}
+.slot-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.slot-label{font-size:12px;font-weight:800;text-transform:uppercase;color:var(--text3);letter-spacing:0.5px}
+.slot-time{font-size:11px;color:var(--text3)}
+.slot-assigned{background:var(--green-soft);border:1px solid var(--green);border-radius:var(--radius-sm);padding:10px 12px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.slot-assigned-name{font-weight:700;font-size:14px;color:var(--green)}
+.slot-empty{border:2px dashed var(--border);border-radius:var(--radius-sm);padding:14px;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text3);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s}
+.slot-empty:active{background:var(--primary-soft);border-color:var(--primary);color:var(--primary)}
+.slot-remove{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--red);font-size:18px;font-weight:800}
+.slot-remove:active{background:var(--red-soft)}
+.note-area{width:100%;margin-top:8px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg2);color:var(--text);font-size:12px;line-height:1.4;resize:none;min-height:32px;max-height:80px;overflow-y:auto}
+.note-area::placeholder{color:var(--text3)}.note-area:focus{outline:none;border-color:var(--primary)}
+.note-display{margin-top:6px;padding:6px 10px;background:var(--amber-soft);border-radius:var(--radius-sm);font-size:12px;color:var(--amber);font-style:italic;cursor:pointer}
+.extra-item{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--blue-soft);border:1px solid var(--blue);border-radius:var(--radius-sm);margin-top:4px;font-size:12px}
+.extra-item-name{font-weight:700;color:var(--blue)}.extra-item-info{font-size:11px;color:var(--text2)}
+.extra-remove{color:var(--red);font-weight:800;font-size:16px;padding:4px 8px}
+.add-extra-btn{display:flex;align-items:center;gap:4px;margin-top:6px;padding:6px 10px;border:1px dashed var(--blue);border-radius:var(--radius-sm);font-size:11px;font-weight:700;color:var(--blue);cursor:pointer}
+.add-extra-btn:active{background:var(--blue-soft)}
+.water-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow)}
+.water-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.water-label{font-size:12px;font-weight:800;text-transform:uppercase;color:var(--cyan);letter-spacing:0.5px}
+.water-total{font-size:20px;font-weight:800;color:var(--cyan)}.water-total span{font-size:13px;font-weight:600;color:var(--text2)}
+.water-btns{display:flex;gap:6px;flex-wrap:wrap}
+.water-btn{flex:1;min-width:70px;padding:10px 6px;background:var(--cyan-soft);border:1px solid var(--cyan);border-radius:var(--radius-sm);font-size:12px;font-weight:700;color:var(--cyan);text-align:center;cursor:pointer;transition:all 0.15s}
+.water-btn:active{transform:scale(0.95);background:var(--cyan);color:#fff}
+.water-btn-sub{font-size:10px;font-weight:600;color:var(--text3);display:block;margin-top:1px}
+.water-log{margin-top:8px}.water-log-item{display:flex;justify-content:space-between;align-items:center;padding:4px 8px;font-size:11px;color:var(--text2);border-bottom:1px solid var(--border)}
+.water-log-item:last-child{border-bottom:none}.water-undo{color:var(--red);font-weight:800;font-size:14px;padding:4px 8px;cursor:pointer}
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;opacity:0;pointer-events:none;transition:opacity 0.2s}
+.sheet-overlay.open{opacity:1;pointer-events:all}
+.sheet{position:fixed;bottom:0;left:0;right:0;max-height:80dvh;background:var(--surface);border-radius:20px 20px 0 0;z-index:101;transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.32,0.72,0,1);display:flex;flex-direction:column;padding-bottom:var(--safe-b)}
+.sheet.open{transform:translateY(0)}.sheet-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:10px auto 0;flex-shrink:0}
+.sheet-title{padding:12px 20px 8px;font-size:16px;font-weight:800;flex-shrink:0}
+.sheet-body{overflow-y:auto;padding:0 16px 20px;-webkit-overflow-scrolling:touch}
+.option-card{background:var(--bg2);border:2px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;cursor:pointer;transition:all 0.15s}
+.option-card:active{transform:scale(0.98)}.option-card.disabled{opacity:0.35;pointer-events:none}
+.option-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.option-name{font-weight:700;font-size:15px}
+.option-badge{font-size:11px;font-weight:800;padding:2px 8px;border-radius:99px;background:var(--primary-soft);color:var(--primary)}
+.option-badge.zero{background:var(--red-soft);color:var(--red)}
+.option-ingredients{font-size:12px;color:var(--text2);line-height:1.5}
+.option-macros{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.macro-pill{font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:var(--surface)}
+.macro-pill.kcal{color:var(--primary)}.macro-pill.p{color:var(--blue)}.macro-pill.c{color:var(--amber)}.macro-pill.f{color:var(--red)}
+.nutr-day-header{padding:16px 16px 8px;font-size:14px;font-weight:800;color:var(--text2)}
+.nutr-totals{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:0 12px 8px}
+.nutr-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center;box-shadow:var(--shadow)}
+.nutr-card.wide{grid-column:span 2}
+.nutr-val{font-size:28px;font-weight:800;letter-spacing:-1px}
+.nutr-val.kcal{color:var(--primary)}.nutr-val.p{color:var(--blue)}.nutr-val.c{color:var(--amber)}.nutr-val.f{color:var(--red)}.nutr-val.fi{color:var(--green)}
+.nutr-label{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;margin-top:2px}
+.week-summary{padding:12px}.week-summary-title{font-size:14px;font-weight:800;color:var(--text2);margin-bottom:8px;padding:0 4px}
+.ws-row{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px}
+.ws-label{font-size:13px;font-weight:700}.ws-val{font-size:13px;font-weight:800}
+.freq-overview{padding:0 12px 12px}.freq-slot-title{font-size:12px;font-weight:800;color:var(--text3);text-transform:uppercase;padding:8px 4px 4px}
+.freq-row{display:flex;align-items:center;gap:8px;padding:6px 8px;font-size:13px}
+.freq-dots{display:flex;gap:3px}.freq-dot{width:10px;height:10px;border-radius:50%;border:2px solid var(--border)}
+.freq-dot.used{background:var(--green);border-color:var(--green)}.freq-name{font-weight:600;color:var(--text2);flex:1}
+.settings-section{padding:16px}.settings-section h2{font-size:15px;font-weight:800;margin-bottom:12px;color:var(--text2)}
+.import-area{width:100%;min-height:100px;background:var(--bg2);border:2px solid var(--border);border-radius:var(--radius);padding:12px;font-size:13px;color:var(--text);resize:vertical;font-family:'Courier New',monospace}
+.import-area:focus{outline:none;border-color:var(--primary)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:12px 20px;border-radius:var(--radius-sm);font-size:14px;font-weight:700;min-height:48px;transition:all 0.15s}
+.btn-primary{background:var(--primary);color:#fff;width:100%}.btn-primary:active{opacity:0.85;transform:scale(0.98)}
+.btn-outline{background:transparent;color:var(--primary);border:2px solid var(--primary);width:100%}
+.btn-danger{background:var(--red-soft);color:var(--red);width:100%}.btn-sm{min-height:36px;padding:8px 14px;font-size:12px}
+.btn+.btn{margin-top:8px}
+.msg{padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;margin-bottom:12px}
+.msg-ok{background:var(--green-soft);color:var(--green)}.msg-err{background:var(--red-soft);color:var(--red)}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 32px;text-align:center}
+.empty-icon{font-size:48px;margin-bottom:12px}.empty-title{font-size:18px;font-weight:800;margin-bottom:6px}
+.empty-desc{font-size:13px;color:var(--text2);line-height:1.5;max-width:280px}
+.empty-desc a{color:var(--primary);text-decoration:underline;cursor:pointer}
+.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--border)}
+.toggle-row:last-child{border-bottom:none}.toggle-label{font-size:14px;font-weight:700}
+.toggle{width:48px;height:28px;background:var(--bg3);border-radius:14px;position:relative;transition:background 0.2s;cursor:pointer}
+.toggle.on{background:var(--primary)}
+.toggle::after{content:'';position:absolute;width:22px;height:22px;background:#fff;border-radius:50%;top:3px;left:3px;transition:transform 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2)}
+.toggle.on::after{transform:translateX(20px)}
+.history-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin:0 12px 8px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.history-item:active{background:var(--bg2)}.hist-week{font-weight:700;font-size:14px}.hist-detail{font-size:12px;color:var(--text2)}.hist-arrow{color:var(--text3);font-size:18px}
+.slot-note-hint{font-size:11px;color:var(--text3);font-style:italic;margin-top:4px}
+.saved-extra{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;cursor:pointer}
+.saved-extra:active{background:var(--blue-soft);border-color:var(--blue)}
+.saved-extra-name{font-weight:700;font-size:13px}.saved-extra-info{font-size:11px;color:var(--text2)}
+@media(min-width:640px){.app{max-width:480px;margin:0 auto}}
 </style>
 </head>
 <body data-theme="dark">
 <div class="app" id="app">
-
-  <!-- Header -->
-  <header class="header">
-    <div>
-      <h1>Diyetim</h1>
-      <div class="header-sub" id="headerSub">Plan yüklenmedi</div>
-    </div>
-    <button onclick="goTab('settings')" style="padding:8px;" aria-label="Ayarlar">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-    </button>
-  </header>
-
-  <!-- Plan info bar -->
-  <div class="plan-info" id="planInfo" style="display:none;">
-    <span id="planInfoText"></span>
-    <span id="planInfoWeek"></span>
-  </div>
-
-  <!-- Main content -->
-  <div class="main">
-
-    <!-- Planner View -->
-    <div class="view active" id="view-planner">
-      <div id="plannerContent"></div>
-    </div>
-
-    <!-- Nutrition View -->
-    <div class="view" id="view-nutrition">
-      <div id="nutritionContent"></div>
-    </div>
-
-    <!-- History View -->
-    <div class="view" id="view-history">
-      <div id="historyContent"></div>
-    </div>
-
-    <!-- Settings View -->
-    <div class="view" id="view-settings">
-      <div class="settings-section">
-        <h2>Plan İçe Aktar</h2>
-        <div id="importMsg"></div>
-        <textarea class="import-area" id="importArea" placeholder='AI tarafından üretilen JSON\'ı buraya yapıştırın...'></textarea>
-        <div style="height:10px"></div>
-        <button class="btn btn-primary" onclick="importPlan()">Planı Yükle</button>
-        <button class="btn btn-outline" onclick="loadSample()">Örnek Plan Yükle</button>
-      </div>
-      <div class="settings-section">
-        <h2>Görünüm</h2>
-        <div class="toggle-row">
-          <span class="toggle-label">Karanlık Mod</span>
-          <div class="toggle" id="darkToggle" onclick="toggleDark()"></div>
-        </div>
-      </div>
-      <div class="settings-section">
-        <h2>Veri Yönetimi</h2>
-        <button class="btn btn-outline" onclick="exportData()">Verileri Dışa Aktar (JSON)</button>
-        <button class="btn btn-outline" onclick="archiveWeek()">Bu Haftayı Arşivle</button>
-        <button class="btn btn-danger" onclick="resetWeek()">Haftalık Planı Sıfırla</button>
-      </div>
-      <div class="settings-section">
-        <h2>Hakkında</h2>
-        <p style="font-size:13px;color:var(--text2);line-height:1.6;">
-          Diyetim v1.0 — Haftalık beslenme planı takip uygulaması.<br>
-          Diyetisyeninizin verdiği haftalık planı AI ile JSON'a çevirin ve buraya yapıştırın.<br>
-          Verileriniz yalnızca bu cihazda saklanır.
-        </p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Tab Bar -->
-  <nav class="tab-bar">
-    <button class="tab-btn active" onclick="goTab('planner')" data-tab="planner">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      <span>Plan</span>
-    </button>
-    <button class="tab-btn" onclick="goTab('nutrition')" data-tab="nutrition">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
-      <span>Beslenme</span>
-    </button>
-    <button class="tab-btn" onclick="goTab('history')" data-tab="history">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      <span>Geçmiş</span>
-    </button>
-    <button class="tab-btn" onclick="goTab('settings')" data-tab="settings">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
-      <span>Ayarlar</span>
-    </button>
-  </nav>
-
-  <!-- Bottom Sheet -->
-  <div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet()"></div>
-  <div class="sheet" id="sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title" id="sheetTitle"></div>
-    <div class="sheet-body" id="sheetBody"></div>
-  </div>
+<header class="header"><div><h1>Diyetim</h1><div class="header-sub" id="headerSub">Plan yüklenmedi</div></div>
+<button onclick="goTab('settings')" style="padding:8px" aria-label="Ayarlar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+</header>
+<div class="plan-info" id="planInfo" style="display:none"><span id="planInfoText"></span><span id="planInfoWeek"></span></div>
+<div class="main" id="mainScroll">
+<div class="view active" id="view-planner"><div id="plannerContent"></div></div>
+<div class="view" id="view-nutrition"><div id="nutritionContent"></div></div>
+<div class="view" id="view-history"><div id="historyContent"></div></div>
+<div class="view" id="view-settings">
+<div class="settings-section"><h2>Plan İçe Aktar</h2><div id="importMsg"></div>
+<textarea class="import-area" id="importArea" placeholder="AI tarafından üretilen JSON'ı buraya yapıştırın..."></textarea>
+<div style="height:10px"></div><button class="btn btn-primary" onclick="importPlan()">Planı Yükle</button>
+<button class="btn btn-outline" onclick="loadSample()">Örnek Plan Yükle</button></div>
+<div class="settings-section"><h2>Kayıtlı Ekstra Yiyecekler</h2>
+<p style="font-size:12px;color:var(--text2);margin-bottom:10px">Sık eklediğiniz ekstra yiyecekleri burada yönetin.</p>
+<div id="savedExtrasList"></div>
+<button class="btn btn-outline btn-sm" onclick="openAddSavedExtraSheet()" style="margin-top:8px">+ Yeni Ekstra Yiyecek Ekle</button></div>
+<div class="settings-section"><h2>Görünüm</h2><div class="toggle-row"><span class="toggle-label">Karanlık Mod</span><div class="toggle" id="darkToggle" onclick="toggleDark()"></div></div></div>
+<div class="settings-section"><h2>Veri Yönetimi</h2>
+<button class="btn btn-outline" onclick="exportData()">Verileri Dışa Aktar</button>
+<button class="btn btn-outline" onclick="archiveWeek()">Bu Haftayı Arşivle</button>
+<button class="btn btn-danger" onclick="resetWeek()">Haftalık Planı Sıfırla</button></div>
+<div class="settings-section" style="padding-bottom:32px"><h2>Hakkında</h2><p style="font-size:13px;color:var(--text2);line-height:1.6">Diyetim v1.1<br>Verileriniz yalnızca bu cihazda saklanır.</p></div>
 </div>
-
+</div>
+<nav class="tab-bar">
+<button class="tab-btn active" onclick="goTab('planner')" data-tab="planner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Plan</span></button>
+<button class="tab-btn" onclick="goTab('nutrition')" data-tab="nutrition"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg><span>Beslenme</span></button>
+<button class="tab-btn" onclick="goTab('history')" data-tab="history"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>Geçmiş</span></button>
+<button class="tab-btn" onclick="goTab('settings')" data-tab="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg><span>Ayarlar</span></button>
+</nav>
+<div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet"><div class="sheet-handle"></div><div class="sheet-title" id="sheetTitle"></div><div class="sheet-body" id="sheetBody"></div></div>
+</div>
 <script>
-// ── State ──────────────────────────────────────────
-const DAYS = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
-const DAY_FULL = ['Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi','Pazar'];
-const LS = {
-  plan: 'diyetim_plan',
-  assign: 'diyetim_assign',
-  history: 'diyetim_history',
-  dark: 'diyetim_dark',
-};
+const DAYS=['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'],DAY_FULL=['Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi','Pazar'];
+const WATER_OPTIONS=[{label:'1 Bardak',sub:'200 ml',ml:200},{label:'1 Şişe',sub:'500 ml',ml:500},{label:'1 Büyük',sub:'750 ml',ml:750},{label:'1 Litre',sub:'1000 ml',ml:1000}];
+const LS={plan:'diyetim_plan',assign:'diyetim_assign',history:'diyetim_history',dark:'diyetim_dark',notes:'diyetim_notes',extras:'diyetim_extras',water:'diyetim_water',savedExtras:'diyetim_savedExtras'};
+let state={plan:null,assignments:{},notes:{},extras:{},water:{},savedExtras:[],history:[],selectedDay:0,currentTab:'planner'};
 
-let state = {
-  plan: null,        // the loaded meal plan JSON
-  assignments: {},   // { "0-ilk-ogun": "beyaz-smoothie", ... }  key = dayIndex-slotId
-  selectedDay: 0,
-  currentTab: 'planner',
-  history: [],
-};
+function save(){try{if(state.plan)localStorage.setItem(LS.plan,JSON.stringify(state.plan));localStorage.setItem(LS.assign,JSON.stringify(state.assignments));localStorage.setItem(LS.notes,JSON.stringify(state.notes));localStorage.setItem(LS.extras,JSON.stringify(state.extras));localStorage.setItem(LS.water,JSON.stringify(state.water));localStorage.setItem(LS.savedExtras,JSON.stringify(state.savedExtras));localStorage.setItem(LS.history,JSON.stringify(state.history))}catch(e){}}
+function load(){try{const p=localStorage.getItem(LS.plan);if(p)state.plan=JSON.parse(p);const a=localStorage.getItem(LS.assign);if(a)state.assignments=JSON.parse(a);const n=localStorage.getItem(LS.notes);if(n)state.notes=JSON.parse(n);const x=localStorage.getItem(LS.extras);if(x)state.extras=JSON.parse(x);const w=localStorage.getItem(LS.water);if(w)state.water=JSON.parse(w);const se=localStorage.getItem(LS.savedExtras);if(se)state.savedExtras=JSON.parse(se);const h=localStorage.getItem(LS.history);if(h)state.history=JSON.parse(h);const d=localStorage.getItem(LS.dark);if(d!==null)document.body.dataset.theme=d==='true'?'dark':'light';updateDarkToggle()}catch(e){}}
 
-// ── Storage ────────────────────────────────────────
-function save() {
-  try {
-    if (state.plan) localStorage.setItem(LS.plan, JSON.stringify(state.plan));
-    localStorage.setItem(LS.assign, JSON.stringify(state.assignments));
-    localStorage.setItem(LS.history, JSON.stringify(state.history));
-  } catch(e) { console.error('Save error:', e); }
-}
+function getUsedCount(id){return Object.values(state.assignments).filter(v=>v===id).length}
+function getSlotUsedCount(sid){return Object.entries(state.assignments).filter(([k,v])=>k.split('-').slice(1).join('-')===sid&&v).length}
+function getRemaining(o){return o.maxPerWeek-getUsedCount(o.id)}
+function isOptionAvailable(o,sid,d){const k=d+'-'+sid;if(state.assignments[k]===o.id)return true;if(getRemaining(o)<=0)return false;const s=state.plan?.slots?.find(x=>x.id===sid);if(s?.slotMaxPerWeek&&getSlotUsedCount(sid)>=s.slotMaxPerWeek&&!state.assignments[k])return false;return true}
+function getExtraNutrition(d,sid){return(state.extras[d+'-'+sid]||[]).reduce((a,e)=>({kcal:a.kcal+(e.kcal||0),protein:a.protein+(e.protein||0),carb:a.carb+(e.carb||0),fat:a.fat+(e.fat||0),fiber:a.fiber+(e.fiber||0)}),{kcal:0,protein:0,carb:0,fat:0,fiber:0})}
+function getDayNutrition(d){const n={kcal:0,protein:0,carb:0,fat:0,fiber:0};if(!state.plan)return n;for(const s of state.plan.slots){const k=d+'-'+s.id,oid=state.assignments[k];if(oid){const o=s.options.find(x=>x.id===oid);if(o?.nutrition){n.kcal+=o.nutrition.kcal||0;n.protein+=o.nutrition.protein||0;n.carb+=o.nutrition.carb||0;n.fat+=o.nutrition.fat||0;n.fiber+=o.nutrition.fiber||0}}const en=getExtraNutrition(d,s.id);n.kcal+=en.kcal;n.protein+=en.protein;n.carb+=en.carb;n.fat+=en.fat;n.fiber+=en.fiber}return n}
+function getDayWater(d){return(state.water[d]||[]).reduce((s,w)=>s+w.ml,0)}
+function getWeekNutrition(){const t={kcal:0,protein:0,carb:0,fat:0,fiber:0};let f=0;for(let d=0;d<7;d++){const dn=getDayNutrition(d);if(dn.kcal>0)f++;t.kcal+=dn.kcal;t.protein+=dn.protein;t.carb+=dn.carb;t.fat+=dn.fat;t.fiber+=dn.fiber}const a=f?{kcal:Math.round(t.kcal/f),protein:Math.round(t.protein/f),carb:Math.round(t.carb/f),fat:Math.round(t.fat/f),fiber:Math.round(t.fiber/f)}:{kcal:0,protein:0,carb:0,fat:0,fiber:0};return{totals:t,filledDays:f,avg:a}}
+function getDayFilledCount(d){if(!state.plan)return 0;return state.plan.slots.filter(s=>state.assignments[d+'-'+s.id]).length}
 
-function load() {
-  try {
-    const p = localStorage.getItem(LS.plan);
-    if (p) state.plan = JSON.parse(p);
-    const a = localStorage.getItem(LS.assign);
-    if (a) state.assignments = JSON.parse(a);
-    const h = localStorage.getItem(LS.history);
-    if (h) state.history = JSON.parse(h);
-    const d = localStorage.getItem(LS.dark);
-    if (d !== null) document.body.dataset.theme = d === 'true' ? 'dark' : 'light';
-    updateDarkToggle();
-  } catch(e) { console.error('Load error:', e); }
-}
+function goTab(t){state.currentTab=t;document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById('view-'+t).classList.add('active');document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));document.getElementById('mainScroll').scrollTop=0;render()}
 
-// ── Frequency Logic (core) ─────────────────────────
-function getUsedCount(optionId) {
-  return Object.values(state.assignments).filter(v => v === optionId).length;
-}
+function render(){renderHeader();if(state.currentTab==='planner')renderPlanner();if(state.currentTab==='nutrition')renderNutrition();if(state.currentTab==='history')renderHistory();if(state.currentTab==='settings')renderSavedExtras()}
+function renderHeader(){const s=document.getElementById('headerSub'),i=document.getElementById('planInfo');if(state.plan){s.textContent=state.plan.dietitian||'Plan yüklendi';i.style.display='flex';document.getElementById('planInfoText').textContent=state.plan.dietitian||'';document.getElementById('planInfoWeek').textContent=state.plan.week||''}else{s.textContent='Plan yüklenmedi';i.style.display='none'}}
 
-function getSlotUsedCount(slotId) {
-  return Object.entries(state.assignments).filter(([k, v]) => k.split('-').slice(1).join('-') === slotId && v).length;
-}
+function renderDayStrip(){let h='<div class="day-strip">';for(let d=0;d<7;d++){const f=getDayFilledCount(d)>0;h+=`<button class="day-chip${d===state.selectedDay?' active':''}${f?' filled':''}" onclick="selectDay(${d})"><span>${DAYS[d]}</span><span>${d+14}</span></button>`}return h+'</div>'}
 
-function getRemaining(option) {
-  return option.maxPerWeek - getUsedCount(option.id);
-}
+function renderPlanner(){const el=document.getElementById('plannerContent');if(!state.plan){el.innerHTML='<div class="empty-state"><div class="empty-icon">🥗</div><div class="empty-title">Henüz plan yüklenmedi</div><div class="empty-desc">Diyetisyeninizin PDF\'ini AI ile JSON\'a çevirin, ardından <a onclick="goTab(\'settings\')">Ayarlar</a> sekmesinden içe aktarın.</div></div>';return}
+const d=state.selectedDay;let h=renderDayStrip();h+='<div class="slots-container">';
+// Water
+const wml=getDayWater(d),wl=(wml/1000).toFixed(1);
+h+=`<div class="water-section"><div class="water-header"><span class="water-label">💧 Su Takibi</span><span class="water-total">${wl}<span> L</span></span></div><div class="water-btns">`;
+for(const wo of WATER_OPTIONS)h+=`<button class="water-btn" onclick="addWater(${d},${wo.ml})"><span>${wo.label}</span><span class="water-btn-sub">${wo.sub}</span></button>`;
+h+='</div>';const wlog=state.water[d]||[];if(wlog.length){h+='<div class="water-log">';for(let i=wlog.length-1;i>=0;i--)h+=`<div class="water-log-item"><span>${wlog[i].time} — ${wlog[i].ml} ml</span><button class="water-undo" onclick="removeWater(${d},${i})">×</button></div>`;h+='</div>'}h+='</div>';
+// Slots
+for(const slot of state.plan.slots){const key=d+'-'+slot.id,aid=state.assignments[key],aopt=aid?slot.options.find(o=>o.id===aid):null,note=state.notes[key]||'',extras=state.extras[key]||[];
+h+='<div class="slot-card">';h+=`<div class="slot-header"><span class="slot-label">${esc(slot.label)}</span><span class="slot-time">${esc(slot.time||'')}</span></div>`;
+if(aopt){const n=aopt.nutrition;h+=`<div class="slot-assigned" onclick="openSheet('${slot.id}')"><div><div class="slot-assigned-name">${esc(aopt.name)}</div><div style="font-size:12px;color:var(--text2);margin-top:2px">${n?.kcal||'?'} kcal · P${n?.protein||0} K${n?.carb||0} Y${n?.fat||0}</div></div><button class="slot-remove" onclick="event.stopPropagation();unassign('${key}')">×</button></div>`}
+else{h+=`<div class="slot-empty" onclick="openSheet('${slot.id}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Seçenek Ata</div>`}
+if(extras.length){h+='<div class="extras-section">';for(let i=0;i<extras.length;i++){const e=extras[i];h+=`<div class="extra-item"><div><span class="extra-item-name">${esc(e.name)}</span><br><span class="extra-item-info">${e.kcal} kcal · P${e.protein||0} K${e.carb||0} Y${e.fat||0}</span></div><button class="extra-remove" onclick="removeExtra('${key}',${i})">×</button></div>`}h+='</div>'}
+h+=`<div class="add-extra-btn" onclick="openExtraSheet('${key}')">+ Ekstra yiyecek ekle</div>`;
+if(note){h+=`<div class="note-display" onclick="this.style.display='none';this.nextElementSibling.style.display='block';this.nextElementSibling.focus()">📝 ${esc(note)}</div><textarea class="note-area" style="display:none" placeholder="Not ekle..." onblur="saveNote('${key}',this.value)" oninput="autoGrow(this)">${esc(note)}</textarea>`}
+else{h+=`<textarea class="note-area" placeholder="Not ekle... (ör: bu öğün beni açıktırdı, 15dk önce yedim)" onblur="saveNote('${key}',this.value)" oninput="autoGrow(this)"></textarea>`}
+h+='</div>'}h+='</div>';
+// Freq
+h+='<div class="freq-overview"><div class="freq-slot-title" style="padding-top:4px">Haftalık Kullanım</div>';
+for(const slot of state.plan.slots){h+=`<div class="freq-slot-title">${esc(slot.label)}</div>`;for(const opt of slot.options){const u=getUsedCount(opt.id);h+=`<div class="freq-row"><span class="freq-name">${esc(opt.name)}</span><div class="freq-dots">`;for(let i=0;i<opt.maxPerWeek;i++)h+=`<div class="freq-dot${i<u?' used':''}"></div>`;h+='</div></div>'}}h+='</div>';
+el.innerHTML=h}
 
-function isOptionAvailable(option, slotId, dayIndex) {
-  const key = dayIndex + '-' + slotId;
-  // Already assigned to this cell
-  if (state.assignments[key] === option.id) return true;
-  // Frequency cap reached
-  if (getRemaining(option) <= 0) return false;
-  // Slot-level cap (for optional snack slot etc.) — check if slot overcapacity
-  const slot = state.plan?.slots?.find(s => s.id === slotId);
-  if (slot?.slotMaxPerWeek) {
-    const slotUsed = getSlotUsedCount(slotId);
-    if (slotUsed >= slot.slotMaxPerWeek && !state.assignments[key]) return false;
-  }
-  return true;
-}
+function renderNutrition(){const el=document.getElementById('nutritionContent');if(!state.plan){el.innerHTML='<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">Plan yükleyin</div></div>';return}
+const d=state.selectedDay,dn=getDayNutrition(d),wn=getWeekNutrition(),wml=getDayWater(d);
+let h=renderDayStrip();h+=`<div class="nutr-day-header">${DAY_FULL[d]} — Günlük Özet</div><div class="nutr-totals">`;
+h+=nc('kcal',dn.kcal,'kcal','Kalori',1)+nc('p',dn.protein,'g','Protein')+nc('c',dn.carb,'g','Karbonhidrat')+nc('f',dn.fat,'g','Yağ')+nc('fi',dn.fiber,'g','Lif');
+h+=`<div class="nutr-card"><div class="nutr-val" style="color:var(--cyan)">${(wml/1000).toFixed(1)}<span style="font-size:14px;font-weight:600"> L</span></div><div class="nutr-label">Su</div></div></div>`;
+h+='<div class="week-summary">'+`<div class="week-summary-title">Haftalık Özet (${wn.filledDays}/7 gün)</div>`;
+[['Toplam Kalori',wn.totals.kcal+' kcal'],['Ort. Kalori/Gün',wn.avg.kcal+' kcal'],['Ort. Protein',wn.avg.protein+' g'],['Ort. Karbonhidrat',wn.avg.carb+' g'],['Ort. Yağ',wn.avg.fat+' g'],['Ort. Lif',wn.avg.fiber+' g']].forEach(([l,v])=>h+=`<div class="ws-row"><span class="ws-label">${l}</span><span class="ws-val">${v}</span></div>`);
+h+='</div>';
+h+=`<div class="week-summary"><div class="week-summary-title">${DAY_FULL[d]} — Öğün Detayları</div>`;
+for(const slot of state.plan.slots){const key=d+'-'+slot.id,oid=state.assignments[key],opt=oid?slot.options.find(o=>o.id===oid):null,en=getExtraNutrition(d,slot.id),tk=(opt?.nutrition?.kcal||0)+en.kcal,extras=state.extras[key]||[];let det=opt?esc(opt.name):'—';if(extras.length)det+=' + '+extras.map(e=>esc(e.name)).join(', ');
+h+=`<div class="ws-row"><div><span class="ws-label">${esc(slot.label)}</span><br><span style="font-size:11px;color:var(--text3)">${det}</span></div><span class="ws-val">${tk?tk+' kcal':'—'}</span></div>`}
+h+='</div>';el.innerHTML=h}
+function nc(c,v,u,l,w){return`<div class="nutr-card${w?' wide':''}"><div class="nutr-val ${c}">${v}<span style="font-size:14px;font-weight:600"> ${u}</span></div><div class="nutr-label">${l}</div></div>`}
 
-function getDayNutrition(dayIndex) {
-  const n = { kcal: 0, protein: 0, carb: 0, fat: 0, fiber: 0 };
-  if (!state.plan) return n;
-  for (const slot of state.plan.slots) {
-    const key = dayIndex + '-' + slot.id;
-    const optId = state.assignments[key];
-    if (!optId) continue;
-    const opt = slot.options.find(o => o.id === optId);
-    if (!opt?.nutrition) continue;
-    n.kcal += opt.nutrition.kcal || 0;
-    n.protein += opt.nutrition.protein || 0;
-    n.carb += opt.nutrition.carb || 0;
-    n.fat += opt.nutrition.fat || 0;
-    n.fiber += opt.nutrition.fiber || 0;
-  }
-  return n;
-}
+function renderHistory(){const el=document.getElementById('historyContent');if(!state.history.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Geçmiş boş</div></div>';return}
+let h='<div style="padding:12px 0 4px 16px;font-size:14px;font-weight:800;color:var(--text2)">Arşiv</div>';
+for(let i=state.history.length-1;i>=0;i--){const x=state.history[i];h+=`<div class="history-item" onclick="loadHistoryItem(${i})"><div><div class="hist-week">${esc(x.week||'')}</div><div class="hist-detail">${esc(x.dietitian||'')} · ${Object.keys(x.assignments||{}).length} öğün</div></div><span class="hist-arrow">›</span></div>`}
+h+='<div class="settings-section"><button class="btn btn-danger" onclick="clearHistory()">Geçmişi Temizle</button></div>';el.innerHTML=h}
+function renderSavedExtras(){const el=document.getElementById('savedExtrasList');if(!el)return;if(!state.savedExtras.length){el.innerHTML='<p style="font-size:12px;color:var(--text3)">Henüz kayıtlı ekstra yok.</p>';return}
+let h='';for(let i=0;i<state.savedExtras.length;i++){const e=state.savedExtras[i];h+=`<div class="saved-extra"><div><span class="saved-extra-name">${esc(e.name)}</span><br><span class="saved-extra-info">${e.kcal} kcal · P${e.protein||0} K${e.carb||0} Y${e.fat||0}</span></div><button class="extra-remove" onclick="event.stopPropagation();removeSavedExtra(${i})">×</button></div>`}el.innerHTML=h}
 
-function getWeekNutrition() {
-  const totals = { kcal: 0, protein: 0, carb: 0, fat: 0, fiber: 0 };
-  let filledDays = 0;
-  for (let d = 0; d < 7; d++) {
-    const dn = getDayNutrition(d);
-    if (dn.kcal > 0) filledDays++;
-    totals.kcal += dn.kcal;
-    totals.protein += dn.protein;
-    totals.carb += dn.carb;
-    totals.fat += dn.fat;
-    totals.fiber += dn.fiber;
-  }
-  return { totals, filledDays, avg: {
-    kcal: filledDays ? Math.round(totals.kcal / filledDays) : 0,
-    protein: filledDays ? Math.round(totals.protein / filledDays) : 0,
-    carb: filledDays ? Math.round(totals.carb / filledDays) : 0,
-    fat: filledDays ? Math.round(totals.fat / filledDays) : 0,
-    fiber: filledDays ? Math.round(totals.fiber / filledDays) : 0,
-  }};
-}
+function selectDay(d){state.selectedDay=d;render()}
+function openSheet(sid){const s=state.plan.slots.find(x=>x.id===sid);if(!s)return;document.getElementById('sheetTitle').textContent=s.label+' — Seçenek Seç';
+let h='';for(const o of s.options){const r=getRemaining(o),av=isOptionAvailable(o,sid,state.selectedDay),ck=state.selectedDay+'-'+sid,ia=state.assignments[ck]===o.id;
+h+=`<div class="option-card${!av&&!ia?' disabled':''}" onclick="assignOption('${sid}','${o.id}')" style="${ia?'border-color:var(--green);background:var(--green-soft);':''}"><div class="option-card-top"><span class="option-name">${esc(o.name)}</span><span class="option-badge${r<=0?' zero':''}">${r}/${o.maxPerWeek}</span></div><div class="option-ingredients">${o.ingredients.map(i=>`${i.amount} ${i.unit} ${i.name}${i.note?' ('+i.note+')':''}`).join(', ')}</div><div class="option-macros"><span class="macro-pill kcal">${o.nutrition?.kcal||'?'} kcal</span><span class="macro-pill p">P ${o.nutrition?.protein||0}g</span><span class="macro-pill c">K ${o.nutrition?.carb||0}g</span><span class="macro-pill f">Y ${o.nutrition?.fat||0}g</span></div>${o.recipe?`<div class="slot-note-hint">📖 ${esc(o.recipe)}</div>`:''}</div>`}
+document.getElementById('sheetBody').innerHTML=h;showSheet()}
+function showSheet(){document.getElementById('sheetOverlay').classList.add('open');document.getElementById('sheet').classList.add('open')}
+function closeSheet(){document.getElementById('sheetOverlay').classList.remove('open');document.getElementById('sheet').classList.remove('open')}
+function assignOption(sid,oid){const k=state.selectedDay+'-'+sid;if(state.assignments[k]===oid)delete state.assignments[k];else{const s=state.plan.slots.find(x=>x.id===sid),o=s?.options.find(x=>x.id===oid);if(o&&isOptionAvailable(o,sid,state.selectedDay))state.assignments[k]=oid}save();closeSheet();render()}
+function unassign(k){delete state.assignments[k];save();render()}
+function saveNote(k,v){if(v.trim())state.notes[k]=v.trim();else delete state.notes[k];save()}
+function autoGrow(el){el.style.height='auto';el.style.height=el.scrollHeight+'px'}
 
-function getDayFilledCount(dayIndex) {
-  if (!state.plan) return 0;
-  return state.plan.slots.filter(s => state.assignments[dayIndex + '-' + s.id]).length;
-}
+let currentExtraKey=null;
+function openExtraSheet(k){currentExtraKey=k;document.getElementById('sheetTitle').textContent='Ekstra Yiyecek Ekle';let h='';
+if(state.savedExtras.length){h+='<div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:8px">Kayıtlı Ekstralar</div>';
+for(let i=0;i<state.savedExtras.length;i++){const e=state.savedExtras[i];h+=`<div class="saved-extra" onclick="addSavedExtra(${i})"><div><span class="saved-extra-name">${esc(e.name)}</span><br><span class="saved-extra-info">${e.kcal} kcal · P${e.protein||0} K${e.carb||0} Y${e.fat||0}</span></div><span style="color:var(--green);font-weight:800">+</span></div>`}
+h+='<div style="height:12px;border-bottom:1px solid var(--border);margin-bottom:12px"></div>'}
+h+='<div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:8px">JSON ile Ekle</div>';
+h+='<textarea id="extraJsonInput" class="import-area" style="min-height:80px" placeholder=\'{"name":"Muz","kcal":105,"protein":1,"carb":27,"fat":0,"fiber":3}\'></textarea><div style="height:8px"></div>';
+h+='<button class="btn btn-primary btn-sm" onclick="addExtraFromJson()">Ekle</button><div style="height:6px"></div>';
+h+='<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" id="saveExtraCheck" checked> Hafızaya da kaydet</label><div id="extraMsg" style="margin-top:8px"></div>';
+document.getElementById('sheetBody').innerHTML=h;showSheet()}
+function addExtraFromJson(){const raw=document.getElementById('extraJsonInput').value.trim(),msg=document.getElementById('extraMsg');if(!raw){msg.innerHTML='<div class="msg msg-err">JSON boş.</div>';return}
+try{const d=JSON.parse(raw);if(!d.name)throw new Error('name gerekli');const e={name:d.name,kcal:Number(d.kcal)||0,protein:Number(d.protein)||0,carb:Number(d.carb)||0,fat:Number(d.fat)||0,fiber:Number(d.fiber)||0};
+if(!state.extras[currentExtraKey])state.extras[currentExtraKey]=[];state.extras[currentExtraKey].push(e);
+const sc=document.getElementById('saveExtraCheck');if(sc&&sc.checked&&!state.savedExtras.find(s=>s.name===e.name))state.savedExtras.push({...e,id:'ex-'+Date.now()});
+save();closeSheet();render()}catch(e){msg.innerHTML=`<div class="msg msg-err">${esc(e.message)}</div>`}}
+function addSavedExtra(i){const e=state.savedExtras[i];if(!e||!currentExtraKey)return;if(!state.extras[currentExtraKey])state.extras[currentExtraKey]=[];state.extras[currentExtraKey].push({name:e.name,kcal:e.kcal,protein:e.protein,carb:e.carb,fat:e.fat,fiber:e.fiber});save();closeSheet();render()}
+function removeExtra(k,i){if(state.extras[k]){state.extras[k].splice(i,1);if(!state.extras[k].length)delete state.extras[k]}save();render()}
+function removeSavedExtra(i){if(!confirm('Silmek istediğinize emin misiniz?'))return;state.savedExtras.splice(i,1);save();renderSavedExtras()}
+function openAddSavedExtraSheet(){document.getElementById('sheetTitle').textContent='Kayıtlı Ekstra Ekle';
+document.getElementById('sheetBody').innerHTML='<textarea id="savedExtraJsonInput" class="import-area" style="min-height:80px" placeholder=\'{"name":"Muz","kcal":105,"protein":1,"carb":27,"fat":0,"fiber":3}\'></textarea><div style="height:8px"></div><button class="btn btn-primary btn-sm" onclick="addSavedExtraFromJson()">Kaydet</button><div id="savedExtraMsg" style="margin-top:8px"></div>';showSheet()}
+function addSavedExtraFromJson(){const raw=document.getElementById('savedExtraJsonInput').value.trim(),msg=document.getElementById('savedExtraMsg');
+try{const d=JSON.parse(raw);if(!d.name)throw new Error('name gerekli');state.savedExtras.push({id:'ex-'+Date.now(),name:d.name,kcal:Number(d.kcal)||0,protein:Number(d.protein)||0,carb:Number(d.carb)||0,fat:Number(d.fat)||0,fiber:Number(d.fiber)||0});save();closeSheet();renderSavedExtras()}catch(e){msg.innerHTML=`<div class="msg msg-err">${esc(e.message)}</div>`}}
 
-// ── Tab Navigation ─────────────────────────────────
-function goTab(tab) {
-  state.currentTab = tab;
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.getElementById('view-' + tab).classList.add('active');
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-  render();
-}
+function addWater(d,ml){if(!state.water[d])state.water[d]=[];const now=new Date();state.water[d].push({ml,time:now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0')});save();render()}
+function removeWater(d,i){if(state.water[d]){state.water[d].splice(i,1);if(!state.water[d].length)delete state.water[d]}save();render()}
 
-// ── Rendering ──────────────────────────────────────
-function render() {
-  renderHeader();
-  if (state.currentTab === 'planner') renderPlanner();
-  if (state.currentTab === 'nutrition') renderNutrition();
-  if (state.currentTab === 'history') renderHistory();
-}
+function importPlan(){const area=document.getElementById('importArea'),msg=document.getElementById('importMsg'),raw=area.value.trim();if(!raw){msg.innerHTML='<div class="msg msg-err">JSON boş olamaz.</div>';return}
+try{const d=JSON.parse(raw);if(!d.slots||!Array.isArray(d.slots))throw new Error('slots dizisi eksik');for(const s of d.slots){if(!s.id||!s.label||!Array.isArray(s.options))throw new Error(`Slot "${s.id||'?'}" hatalı`);for(const o of s.options)if(!o.id||!o.name||typeof o.maxPerWeek!=='number')throw new Error(`Seçenek "${o.id||'?'}" hatalı`)}
+state.plan=d;state.assignments={};state.notes={};state.extras={};state.water={};save();msg.innerHTML='<div class="msg msg-ok">Plan başarıyla yüklendi! ✓</div>';area.value='';render();setTimeout(()=>goTab('planner'),600)}catch(e){msg.innerHTML=`<div class="msg msg-err">Hata: ${esc(e.message)}</div>`}}
+function loadSample(){state.plan=JSON.parse(JSON.stringify(SAMPLE_PLAN));state.assignments={};state.notes={};state.extras={};state.water={};save();document.getElementById('importMsg').innerHTML='<div class="msg msg-ok">Örnek plan yüklendi! ✓</div>';render();setTimeout(()=>goTab('planner'),600)}
+function exportData(){const b=new Blob([JSON.stringify({plan:state.plan,assignments:state.assignments,notes:state.notes,extras:state.extras,water:state.water,savedExtras:state.savedExtras,history:state.history},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='diyetim-backup.json';a.click()}
+function archiveWeek(){if(!state.plan)return alert('Aktif plan yok.');if(!confirm('Bu haftayı arşivlemek istiyor musunuz?'))return;state.history.push({week:state.plan.week||new Date().toISOString().slice(0,10),dietitian:state.plan.dietitian,plan:JSON.parse(JSON.stringify(state.plan)),assignments:JSON.parse(JSON.stringify(state.assignments)),notes:JSON.parse(JSON.stringify(state.notes)),extras:JSON.parse(JSON.stringify(state.extras)),water:JSON.parse(JSON.stringify(state.water)),archivedAt:new Date().toISOString()});state.assignments={};state.notes={};state.extras={};state.water={};save();render();alert('Arşivlendi.')}
+function resetWeek(){if(!confirm('Tüm verileri sıfırlamak istiyor musunuz?'))return;state.assignments={};state.notes={};state.extras={};state.water={};save();render()}
+function clearHistory(){if(!confirm('Tüm geçmişi silmek istiyor musunuz?'))return;state.history=[];save();renderHistory()}
+function loadHistoryItem(i){const h=state.history[i];if(!h||!confirm(`${h.week} planını yüklemek istiyor musunuz?`))return;state.plan=h.plan;state.assignments=h.assignments||{};state.notes=h.notes||{};state.extras=h.extras||{};state.water=h.water||{};save();goTab('planner')}
+function toggleDark(){const d=document.body.dataset.theme==='dark';document.body.dataset.theme=d?'light':'dark';localStorage.setItem(LS.dark,!d);updateDarkToggle()}
+function updateDarkToggle(){const t=document.getElementById('darkToggle');if(t)t.classList.toggle('on',document.body.dataset.theme==='dark')}
+function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML}
 
-function renderHeader() {
-  const sub = document.getElementById('headerSub');
-  const info = document.getElementById('planInfo');
-  if (state.plan) {
-    sub.textContent = state.plan.dietitian || 'Plan yüklendi';
-    info.style.display = 'flex';
-    document.getElementById('planInfoText').textContent = state.plan.dietitian || '';
-    document.getElementById('planInfoWeek').textContent = state.plan.week || '';
-  } else {
-    sub.textContent = 'Plan yüklenmedi';
-    info.style.display = 'none';
-  }
-}
+const SAMPLE_PLAN={"week":"2026-W16","dietitian":"Uzman Diyetisyen Pınar Ezgi","notes":["Sabah uyanınca 1 büyük bardak su içilerek başlansın.","Akşam yemeğinden sonra herhangi bir şey tüketilmemeye çalışılsın."],"slots":[{"id":"ilk-ogun","label":"İlk Öğün","time":"09:00 - 10:00","overcapacity":false,"options":[{"id":"beyaz-smoothie","name":"Beyaz Smoothie","maxPerWeek":2,"ingredients":[{"name":"Hurma","amount":3,"unit":"adet"},{"name":"Ceviz veya kaju","amount":5,"unit":"adet"},{"name":"Tarçın","amount":1,"unit":"tutam"},{"name":"Yarım yağlı süt","amount":1.5,"unit":"sb"}],"nutrition":{"kcal":395,"protein":11,"carb":52,"fat":17,"fiber":4},"recipe":null},{"id":"omlet","name":"Mantarlı/Ispanaklı Omlet","maxPerWeek":2,"ingredients":[{"name":"Yumurta","amount":2,"unit":"adet"},{"name":"Beyaz veya lor peyniri","amount":2,"unit":"yk"},{"name":"Mantar veya ıspanak","amount":1,"unit":"avuç"},{"name":"Yeşil zeytin","amount":8,"unit":"adet"},{"name":"Beyaz peynir","amount":1,"unit":"dilim"},{"name":"Yeşillik, salatalık, domates","amount":1,"unit":"porsiyon","note":"sınırsız, yağsız"}],"nutrition":{"kcal":420,"protein":28,"carb":5,"fat":32,"fiber":2},"recipe":null},{"id":"haslanmis-yumurta","name":"Haşlanmış Yumurta Tabağı","maxPerWeek":3,"ingredients":[{"name":"Haşlanmış yumurta","amount":2,"unit":"adet"},{"name":"Peynir (3 parmak kalınlığında)","amount":1.5,"unit":"dilim"},{"name":"Ceviz içi","amount":4,"unit":"adet"},{"name":"Yeşillik, salatalık, domates","amount":1,"unit":"porsiyon","note":"sınırsız, yağsız"},{"name":"Tam buğday ekmek","amount":1,"unit":"dilim"}],"nutrition":{"kcal":445,"protein":26,"carb":20,"fat":30,"fiber":3},"recipe":null}]},{"id":"ara-1","label":"1. Ara Öğün","time":"12:30 - 13:00","overcapacity":false,"options":[{"id":"elma-mersini","name":"Yeşil Elma / Yaban Mersini","maxPerWeek":2,"ingredients":[{"name":"Yeşil elma veya yaban mersini","amount":1,"unit":"adet/avuç"}],"nutrition":{"kcal":95,"protein":1,"carb":25,"fat":0,"fiber":4},"recipe":null},{"id":"soda-badem","name":"Soda + Çiğ Badem","maxPerWeek":2,"ingredients":[{"name":"Sade soda","amount":1,"unit":"bardak"},{"name":"Çiğ badem","amount":15,"unit":"adet"}],"nutrition":{"kcal":105,"protein":4,"carb":4,"fat":9,"fiber":2},"recipe":null},{"id":"kefir-kaju","name":"Kefir/Ayran + Kaju/Badem","maxPerWeek":3,"ingredients":[{"name":"Sade kefir veya ayran","amount":1,"unit":"bardak"},{"name":"Çiğ kaju veya badem","amount":5,"unit":"adet"}],"nutrition":{"kcal":110,"protein":5,"carb":7,"fat":7,"fiber":1},"recipe":null}]},{"id":"ara-2","label":"2. Ara Öğün","time":"16:30 - 17:00","overcapacity":false,"options":[{"id":"wasa-fistik","name":"Wasa + Fıstık Ezmesi + Meyve","maxPerWeek":2,"ingredients":[{"name":"Wasa ekmek veya pirinç patlağı","amount":1,"unit":"dilim"},{"name":"Şekersiz fıstık ezmesi","amount":1,"unit":"yk"},{"name":"Muz/elma/çilek (dilimlenmiş)","amount":1,"unit":"porsiyon"}],"nutrition":{"kcal":185,"protein":5,"carb":22,"fat":9,"fiber":2},"recipe":null},{"id":"meyve-2","name":"Meyve (Elma/Muz/Mersini)","maxPerWeek":3,"ingredients":[{"name":"Yeşil elma veya ufak muz veya yaban mersini","amount":1,"unit":"adet/avuç"}],"nutrition":{"kcal":95,"protein":1,"carb":25,"fat":0,"fiber":3},"recipe":null},{"id":"activia-chia","name":"Activia Yoğurt + Chia","maxPerWeek":2,"ingredients":[{"name":"Activia yoğurt","amount":1,"unit":"kutu"},{"name":"Chia tohumu","amount":1,"unit":"tk"}],"nutrition":{"kcal":100,"protein":5,"carb":12,"fat":4,"fiber":3},"recipe":null}]},{"id":"aksam","label":"Akşam Yemeği","time":"21:30","overcapacity":true,"options":[{"id":"somon-salata","name":"Fırında Somon + Patates + Salata","maxPerWeek":1,"ingredients":[{"name":"Norveç somonu","amount":1,"unit":"dilim"},{"name":"Patates (fırında)","amount":5,"unit":"dilim"},{"name":"Zeytinyağı (marine)","amount":1,"unit":"yk"},{"name":"4 Renkli salata","amount":1,"unit":"porsiyon"},{"name":"Zeytinyağı (salata)","amount":2,"unit":"yk"}],"nutrition":{"kcal":620,"protein":32,"carb":35,"fat":38,"fiber":5},"recipe":null},{"id":"baklagil-salata","name":"Baklagilli Salata","maxPerWeek":1,"ingredients":[{"name":"Karışık sebze salatası","amount":1,"unit":"kase"},{"name":"Haşlanmış mercimek veya maş fasulyesi","amount":5,"unit":"yk"},{"name":"Haşlanmış mısır","amount":2,"unit":"yk"},{"name":"Zeytinyağı","amount":2,"unit":"yk"}],"nutrition":{"kcal":390,"protein":16,"carb":38,"fat":20,"fiber":10},"recipe":null},{"id":"sebze-yemegi","name":"Sebze Yemeği + Yoğurt","maxPerWeek":3,"ingredients":[{"name":"Sebze yemeği","amount":12,"unit":"yk"},{"name":"Yoğurt","amount":4,"unit":"yk"},{"name":"Tam buğday ekmek","amount":0.5,"unit":"dilim"}],"nutrition":{"kcal":280,"protein":10,"carb":25,"fat":16,"fiber":6},"recipe":"Girit Usulü Kabak Sıyırma"},{"id":"tavuklu-salata","name":"Yoğurt Soslu Tavuklu Salata","maxPerWeek":2,"ingredients":[{"name":"Doğranmış marul","amount":1,"unit":"avuç"},{"name":"Haşlanmış tavuk göğsü","amount":60,"unit":"g"},{"name":"Közlenmiş kırmızı biber","amount":1,"unit":"adet"},{"name":"Konserve mısır","amount":2,"unit":"yk"},{"name":"Yoğurt","amount":4,"unit":"yk"},{"name":"Light mayonez","amount":1,"unit":"tk","note":"isteğe bağlı"}],"nutrition":{"kcal":250,"protein":24,"carb":15,"fat":10,"fiber":3},"recipe":null},{"id":"kofte-pilav","name":"Köfte + Pirinç Pilavı + Salata","maxPerWeek":1,"ingredients":[{"name":"Köfte","amount":4,"unit":"adet"},{"name":"Basmati pirinç pilavı","amount":6,"unit":"yk"},{"name":"Pancarlı salata","amount":1,"unit":"porsiyon"},{"name":"Zeytinyağı (salata)","amount":2,"unit":"yk"}],"nutrition":{"kcal":700,"protein":38,"carb":58,"fat":35,"fiber":4},"recipe":null}]},{"id":"gece-atistirma","label":"Gece Atıştırma (Opsiyonel)","time":"Akşam sonrası","overcapacity":false,"slotMaxPerWeek":3,"options":[{"id":"yogurt-sebze","name":"Yoğurt + Sebze Dilimleri","maxPerWeek":3,"ingredients":[{"name":"Yoğurt","amount":1,"unit":"yk"},{"name":"Salatalık ve havuç dilimleri","amount":1,"unit":"porsiyon"}],"nutrition":{"kcal":45,"protein":2,"carb":5,"fat":2,"fiber":1},"recipe":null},{"id":"mersini-gece","name":"Yaban Mersini","maxPerWeek":3,"ingredients":[{"name":"Yaban mersini","amount":1.5,"unit":"avuç"}],"nutrition":{"kcal":65,"protein":1,"carb":16,"fat":0,"fiber":3},"recipe":null}]}]};
 
-function renderPlanner() {
-  const el = document.getElementById('plannerContent');
-  if (!state.plan) {
-    el.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">🥗</div>
-        <div class="empty-title">Henüz plan yüklenmedi</div>
-        <div class="empty-desc">
-          Diyetisyeninizin PDF'ini AI ile JSON'a çevirin, ardından
-          <a onclick="goTab('settings')">Ayarlar</a> sekmesinden içe aktarın.
-        </div>
-      </div>`;
-    return;
-  }
-
-  let html = '';
-
-  // Day strip
-  html += '<div class="day-strip">';
-  for (let d = 0; d < 7; d++) {
-    const filled = getDayFilledCount(d) > 0;
-    const active = d === state.selectedDay;
-    html += `<button class="day-chip${active ? ' active' : ''}${filled ? ' filled' : ''}" onclick="selectDay(${d})">
-      <span>${DAYS[d]}</span><span>${d + 14}</span>
-    </button>`;
-  }
-  html += '</div>';
-
-  // Slot cards for selected day
-  html += '<div class="slots-container">';
-  for (const slot of state.plan.slots) {
-    const key = state.selectedDay + '-' + slot.id;
-    const assignedId = state.assignments[key];
-    const assignedOpt = assignedId ? slot.options.find(o => o.id === assignedId) : null;
-
-    html += `<div class="slot-card">`;
-    html += `<div class="slot-header"><span class="slot-label">${esc(slot.label)}</span><span class="slot-time">${esc(slot.time || '')}</span></div>`;
-
-    if (assignedOpt) {
-      html += `<div class="slot-assigned" onclick="openSheet('${slot.id}')">
-        <div>
-          <div class="slot-assigned-name">${esc(assignedOpt.name)}</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:2px;">${assignedOpt.nutrition?.kcal || '?'} kcal · P${assignedOpt.nutrition?.protein || 0} K${assignedOpt.nutrition?.carb || 0} Y${assignedOpt.nutrition?.fat || 0}</div>
-        </div>
-        <button class="slot-remove" onclick="event.stopPropagation();unassign('${key}')" aria-label="Kaldır">×</button>
-      </div>`;
-    } else {
-      html += `<div class="slot-empty" onclick="openSheet('${slot.id}')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Seçenek Ata
-      </div>`;
-    }
-    html += '</div>';
-  }
-  html += '</div>';
-
-  // Frequency overview
-  html += '<div class="freq-overview">';
-  html += '<div class="freq-slot-title" style="padding-top:12px;">Haftalık Kullanım Durumu</div>';
-  for (const slot of state.plan.slots) {
-    html += `<div class="freq-slot-title">${esc(slot.label)}</div>`;
-    for (const opt of slot.options) {
-      const used = getUsedCount(opt.id);
-      const max = opt.maxPerWeek;
-      html += `<div class="freq-row"><span class="freq-name">${esc(opt.name)}</span><div class="freq-dots">`;
-      for (let i = 0; i < max; i++) {
-        html += `<div class="freq-dot${i < used ? ' used' : ''}"></div>`;
-      }
-      html += `</div></div>`;
-    }
-  }
-  html += '</div>';
-
-  el.innerHTML = html;
-}
-
-function renderNutrition() {
-  const el = document.getElementById('nutritionContent');
-  if (!state.plan) {
-    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">Plan yükleyin</div><div class="empty-desc">Beslenme verilerini görmek için önce bir plan yükleyin.</div></div>';
-    return;
-  }
-
-  const dn = getDayNutrition(state.selectedDay);
-  const wn = getWeekNutrition();
-
-  let html = '';
-
-  // Day selector
-  html += '<div class="day-strip">';
-  for (let d = 0; d < 7; d++) {
-    html += `<button class="day-chip${d === state.selectedDay ? ' active' : ''}${getDayFilledCount(d) > 0 ? ' filled' : ''}" onclick="selectDay(${d});goTab('nutrition')">
-      <span>${DAYS[d]}</span><span>${d + 14}</span>
-    </button>`;
-  }
-  html += '</div>';
-
-  // Daily totals
-  html += `<div class="nutr-day-header">${DAY_FULL[state.selectedDay]} — Günlük Özet</div>`;
-  html += '<div class="nutr-totals">';
-  html += nutrCard('kcal', dn.kcal, 'kcal', 'Kalori', true);
-  html += nutrCard('p', dn.protein, 'g', 'Protein');
-  html += nutrCard('c', dn.carb, 'g', 'Karbonhidrat');
-  html += nutrCard('f', dn.fat, 'g', 'Yağ');
-  html += nutrCard('fi', dn.fiber, 'g', 'Lif');
-  html += '</div>';
-
-  // Weekly summary
-  html += '<div class="week-summary">';
-  html += `<div class="week-summary-title">Haftalık Özet (${wn.filledDays}/7 gün dolu)</div>`;
-  const rows = [
-    ['Toplam Kalori', wn.totals.kcal + ' kcal'],
-    ['Günlük Ort. Kalori', wn.avg.kcal + ' kcal'],
-    ['Günlük Ort. Protein', wn.avg.protein + ' g'],
-    ['Günlük Ort. Karbonhidrat', wn.avg.carb + ' g'],
-    ['Günlük Ort. Yağ', wn.avg.fat + ' g'],
-    ['Günlük Ort. Lif', wn.avg.fiber + ' g'],
-  ];
-  for (const [label, val] of rows) {
-    html += `<div class="ws-row"><span class="ws-label">${label}</span><span class="ws-val">${val}</span></div>`;
-  }
-  html += '</div>';
-
-  // Macro breakdown per meal for selected day
-  html += `<div class="week-summary"><div class="week-summary-title">${DAY_FULL[state.selectedDay]} — Öğün Detayları</div>`;
-  for (const slot of state.plan.slots) {
-    const key = state.selectedDay + '-' + slot.id;
-    const optId = state.assignments[key];
-    const opt = optId ? slot.options.find(o => o.id === optId) : null;
-    const n = opt?.nutrition;
-    html += `<div class="ws-row">
-      <div><span class="ws-label">${esc(slot.label)}</span><br><span style="font-size:11px;color:var(--text3)">${opt ? esc(opt.name) : '—'}</span></div>
-      <span class="ws-val">${n ? n.kcal + ' kcal' : '—'}</span>
-    </div>`;
-  }
-  html += '</div>';
-
-  el.innerHTML = html;
-}
-
-function nutrCard(cls, value, unit, label, wide) {
-  return `<div class="nutr-card${wide ? ' wide' : ''}">
-    <div class="nutr-val ${cls}">${value}<span style="font-size:14px;font-weight:600;"> ${unit}</span></div>
-    <div class="nutr-label">${label}</div>
-  </div>`;
-}
-
-function renderHistory() {
-  const el = document.getElementById('historyContent');
-  if (!state.history.length) {
-    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Geçmiş boş</div><div class="empty-desc">Haftalık planınızı arşivlediğinizde burada görünecek.</div></div>';
-    return;
-  }
-  let html = '<div style="padding:12px 0 4px 16px;font-size:14px;font-weight:800;color:var(--text2)">Arşiv</div>';
-  for (let i = state.history.length - 1; i >= 0; i--) {
-    const h = state.history[i];
-    const slotCount = Object.keys(h.assignments || {}).length;
-    html += `<div class="history-item" onclick="loadHistoryItem(${i})">
-      <div><div class="hist-week">${esc(h.week || 'Bilinmeyen')}</div>
-      <div class="hist-detail">${esc(h.dietitian || '')} · ${slotCount} öğün atanmış</div></div>
-      <span class="hist-arrow">›</span>
-    </div>`;
-  }
-  html += `<div class="settings-section"><button class="btn btn-danger" onclick="clearHistory()">Geçmişi Temizle</button></div>`;
-  el.innerHTML = html;
-}
-
-// ── Actions ────────────────────────────────────────
-function selectDay(d) {
-  state.selectedDay = d;
-  render();
-}
-
-function openSheet(slotId) {
-  const slot = state.plan.slots.find(s => s.id === slotId);
-  if (!slot) return;
-
-  const title = document.getElementById('sheetTitle');
-  const body = document.getElementById('sheetBody');
-  title.textContent = slot.label + ' — Seçenek Seç';
-
-  let html = '';
-  for (const opt of slot.options) {
-    const remaining = getRemaining(opt);
-    const available = isOptionAvailable(opt, slotId, state.selectedDay);
-    const currentKey = state.selectedDay + '-' + slotId;
-    const isAssigned = state.assignments[currentKey] === opt.id;
-
-    html += `<div class="option-card${!available && !isAssigned ? ' disabled' : ''}" onclick="assignOption('${slotId}','${opt.id}')" style="${isAssigned ? 'border-color:var(--green);background:var(--green-soft);' : ''}">
-      <div class="option-card-top">
-        <span class="option-name">${esc(opt.name)}</span>
-        <span class="option-badge${remaining <= 0 ? ' zero' : ''}">${remaining}/${opt.maxPerWeek}</span>
-      </div>
-      <div class="option-ingredients">${opt.ingredients.map(i => `${i.amount} ${i.unit} ${i.name}${i.note ? ' (' + i.note + ')' : ''}`).join(', ')}</div>
-      <div class="option-macros">
-        <span class="macro-pill kcal">${opt.nutrition?.kcal || '?'} kcal</span>
-        <span class="macro-pill p">P ${opt.nutrition?.protein || 0}g</span>
-        <span class="macro-pill c">K ${opt.nutrition?.carb || 0}g</span>
-        <span class="macro-pill f">Y ${opt.nutrition?.fat || 0}g</span>
-      </div>
-      ${opt.recipe ? `<div class="slot-note">📖 Tarif: ${esc(opt.recipe)}</div>` : ''}
-    </div>`;
-  }
-  body.innerHTML = html;
-
-  document.getElementById('sheetOverlay').classList.add('open');
-  document.getElementById('sheet').classList.add('open');
-}
-
-function closeSheet() {
-  document.getElementById('sheetOverlay').classList.remove('open');
-  document.getElementById('sheet').classList.remove('open');
-}
-
-function assignOption(slotId, optionId) {
-  const key = state.selectedDay + '-' + slotId;
-  // Toggle: if already assigned, unassign
-  if (state.assignments[key] === optionId) {
-    delete state.assignments[key];
-  } else {
-    // Check availability
-    const slot = state.plan.slots.find(s => s.id === slotId);
-    const opt = slot?.options.find(o => o.id === optionId);
-    if (opt && isOptionAvailable(opt, slotId, state.selectedDay)) {
-      state.assignments[key] = optionId;
-    }
-  }
-  save();
-  closeSheet();
-  render();
-}
-
-function unassign(key) {
-  delete state.assignments[key];
-  save();
-  render();
-}
-
-// ── Import / Export ────────────────────────────────
-function importPlan() {
-  const area = document.getElementById('importArea');
-  const msg = document.getElementById('importMsg');
-  const raw = area.value.trim();
-  if (!raw) {
-    msg.innerHTML = '<div class="msg msg-err">JSON boş olamaz.</div>';
-    return;
-  }
-  try {
-    const data = JSON.parse(raw);
-    // Validate
-    if (!data.slots || !Array.isArray(data.slots)) throw new Error('slots dizisi eksik');
-    for (const slot of data.slots) {
-      if (!slot.id || !slot.label || !Array.isArray(slot.options)) throw new Error(`Slot "${slot.id || '?'}" hatalı`);
-      for (const opt of slot.options) {
-        if (!opt.id || !opt.name || typeof opt.maxPerWeek !== 'number') throw new Error(`Seçenek "${opt.id || '?'}" hatalı`);
-      }
-    }
-    state.plan = data;
-    state.assignments = {};
-    save();
-    msg.innerHTML = '<div class="msg msg-ok">Plan başarıyla yüklendi! ✓</div>';
-    area.value = '';
-    render();
-    setTimeout(() => goTab('planner'), 600);
-  } catch(e) {
-    msg.innerHTML = `<div class="msg msg-err">Hata: ${esc(e.message)}</div>`;
-  }
-}
-
-function loadSample() {
-  const sample = SAMPLE_PLAN;
-  state.plan = sample;
-  state.assignments = {};
-  save();
-  document.getElementById('importMsg').innerHTML = '<div class="msg msg-ok">Örnek plan yüklendi! ✓</div>';
-  render();
-  setTimeout(() => goTab('planner'), 600);
-}
-
-function exportData() {
-  const data = { plan: state.plan, assignments: state.assignments, history: state.history };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'diyetim-backup.json'; a.click();
-  URL.revokeObjectURL(url);
-}
-
-function archiveWeek() {
-  if (!state.plan) return alert('Aktif plan yok.');
-  if (!confirm('Bu haftanın planını arşivlemek istediğinize emin misiniz?')) return;
-  state.history.push({
-    week: state.plan.week || new Date().toISOString().slice(0, 10),
-    dietitian: state.plan.dietitian,
-    plan: JSON.parse(JSON.stringify(state.plan)),
-    assignments: JSON.parse(JSON.stringify(state.assignments)),
-    archivedAt: new Date().toISOString(),
-  });
-  state.assignments = {};
-  save();
-  render();
-  alert('Plan arşivlendi. Atamalar sıfırlandı.');
-}
-
-function resetWeek() {
-  if (!confirm('Tüm öğün atamalarını sıfırlamak istediğinize emin misiniz?')) return;
-  state.assignments = {};
-  save();
-  render();
-}
-
-function clearHistory() {
-  if (!confirm('Tüm geçmişi silmek istediğinize emin misiniz?')) return;
-  state.history = [];
-  save();
-  renderHistory();
-}
-
-function loadHistoryItem(idx) {
-  const h = state.history[idx];
-  if (!h) return;
-  if (!confirm(`${h.week} planını yüklemek istediğinize emin misiniz? Aktif plan değişecek.`)) return;
-  state.plan = h.plan;
-  state.assignments = h.assignments || {};
-  save();
-  goTab('planner');
-}
-
-// ── Dark Mode ──────────────────────────────────────
-function toggleDark() {
-  const isDark = document.body.dataset.theme === 'dark';
-  document.body.dataset.theme = isDark ? 'light' : 'dark';
-  localStorage.setItem(LS.dark, !isDark);
-  updateDarkToggle();
-}
-function updateDarkToggle() {
-  const t = document.getElementById('darkToggle');
-  if (t) t.classList.toggle('on', document.body.dataset.theme === 'dark');
-}
-
-// ── Utils ──────────────────────────────────────────
-function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-
-// ── Sample Plan (embedded from PDF) ────────────────
-const SAMPLE_PLAN = {"week":"2026-W16","dietitian":"Uzman Diyetisyen Pınar Ezgi","notes":["Sabah uyanınca 1 büyük bardak su içilerek başlansın.","Akşam yemeğinden sonra herhangi bir şey tüketilmemeye çalışılsın."],"slots":[{"id":"ilk-ogun","label":"İlk Öğün","time":"09:00 - 10:00","overcapacity":false,"options":[{"id":"beyaz-smoothie","name":"Beyaz Smoothie","maxPerWeek":2,"ingredients":[{"name":"Hurma","amount":3,"unit":"adet"},{"name":"Ceviz veya kaju","amount":5,"unit":"adet"},{"name":"Tarçın","amount":1,"unit":"tutam"},{"name":"Yarım yağlı süt","amount":1.5,"unit":"sb"}],"nutrition":{"kcal":395,"protein":11,"carb":52,"fat":17,"fiber":4},"recipe":null},{"id":"omlet","name":"Mantarlı/Ispanaklı Omlet","maxPerWeek":2,"ingredients":[{"name":"Yumurta","amount":2,"unit":"adet"},{"name":"Beyaz veya lor peyniri","amount":2,"unit":"yk"},{"name":"Mantar veya ıspanak","amount":1,"unit":"avuç"},{"name":"Yeşil zeytin","amount":8,"unit":"adet"},{"name":"Beyaz peynir","amount":1,"unit":"dilim"},{"name":"Yeşillik, salatalık, domates","amount":1,"unit":"porsiyon","note":"sınırsız, yağsız"}],"nutrition":{"kcal":420,"protein":28,"carb":5,"fat":32,"fiber":2},"recipe":null},{"id":"haslanmis-yumurta","name":"Haşlanmış Yumurta Tabağı","maxPerWeek":3,"ingredients":[{"name":"Haşlanmış yumurta","amount":2,"unit":"adet"},{"name":"Peynir (3 parmak kalınlığında)","amount":1.5,"unit":"dilim"},{"name":"Ceviz içi","amount":4,"unit":"adet"},{"name":"Yeşillik, salatalık, domates","amount":1,"unit":"porsiyon","note":"sınırsız, yağsız"},{"name":"Tam buğday ekmek","amount":1,"unit":"dilim"}],"nutrition":{"kcal":445,"protein":26,"carb":20,"fat":30,"fiber":3},"recipe":null}]},{"id":"ara-1","label":"1. Ara Öğün","time":"12:30 - 13:00","overcapacity":false,"options":[{"id":"elma-mersini","name":"Yeşil Elma / Yaban Mersini","maxPerWeek":2,"ingredients":[{"name":"Yeşil elma veya yaban mersini","amount":1,"unit":"adet/avuç"}],"nutrition":{"kcal":95,"protein":1,"carb":25,"fat":0,"fiber":4},"recipe":null},{"id":"soda-badem","name":"Soda + Çiğ Badem","maxPerWeek":2,"ingredients":[{"name":"Sade soda","amount":1,"unit":"bardak"},{"name":"Çiğ badem","amount":15,"unit":"adet"}],"nutrition":{"kcal":105,"protein":4,"carb":4,"fat":9,"fiber":2},"recipe":null},{"id":"kefir-kaju","name":"Kefir/Ayran + Kaju/Badem","maxPerWeek":3,"ingredients":[{"name":"Sade kefir veya ayran","amount":1,"unit":"bardak"},{"name":"Çiğ kaju veya badem","amount":5,"unit":"adet"}],"nutrition":{"kcal":110,"protein":5,"carb":7,"fat":7,"fiber":1},"recipe":null}]},{"id":"ara-2","label":"2. Ara Öğün","time":"16:30 - 17:00","overcapacity":false,"options":[{"id":"wasa-fistik","name":"Wasa + Fıstık Ezmesi + Meyve","maxPerWeek":2,"ingredients":[{"name":"Wasa ekmek veya pirinç patlağı","amount":1,"unit":"dilim"},{"name":"Şekersiz fıstık ezmesi","amount":1,"unit":"yk"},{"name":"Muz/elma/çilek (dilimlenmiş)","amount":1,"unit":"porsiyon"}],"nutrition":{"kcal":185,"protein":5,"carb":22,"fat":9,"fiber":2},"recipe":null},{"id":"meyve-2","name":"Meyve (Elma/Muz/Mersini)","maxPerWeek":3,"ingredients":[{"name":"Yeşil elma veya ufak muz veya yaban mersini","amount":1,"unit":"adet/avuç"}],"nutrition":{"kcal":95,"protein":1,"carb":25,"fat":0,"fiber":3},"recipe":null},{"id":"activia-chia","name":"Activia Yoğurt + Chia","maxPerWeek":2,"ingredients":[{"name":"Activia yoğurt","amount":1,"unit":"kutu"},{"name":"Chia tohumu","amount":1,"unit":"tk"}],"nutrition":{"kcal":100,"protein":5,"carb":12,"fat":4,"fiber":3},"recipe":null}]},{"id":"aksam","label":"Akşam Yemeği","time":"21:30","overcapacity":true,"options":[{"id":"somon-salata","name":"Fırında Somon + Patates + Salata","maxPerWeek":1,"ingredients":[{"name":"Norveç somonu","amount":1,"unit":"dilim"},{"name":"Patates (fırında)","amount":5,"unit":"dilim"},{"name":"Zeytinyağı (marine)","amount":1,"unit":"yk"},{"name":"4 Renkli salata","amount":1,"unit":"porsiyon"},{"name":"Zeytinyağı (salata)","amount":2,"unit":"yk"}],"nutrition":{"kcal":620,"protein":32,"carb":35,"fat":38,"fiber":5},"recipe":null},{"id":"baklagil-salata","name":"Baklagilli Salata","maxPerWeek":1,"ingredients":[{"name":"Karışık sebze salatası","amount":1,"unit":"kase"},{"name":"Haşlanmış mercimek veya maş fasulyesi","amount":5,"unit":"yk"},{"name":"Haşlanmış mısır","amount":2,"unit":"yk"},{"name":"Zeytinyağı","amount":2,"unit":"yk"}],"nutrition":{"kcal":390,"protein":16,"carb":38,"fat":20,"fiber":10},"recipe":null},{"id":"sebze-yemegi","name":"Sebze Yemeği + Yoğurt","maxPerWeek":3,"ingredients":[{"name":"Sebze yemeği (kabak sıyırma, taze fasulye vb.)","amount":12,"unit":"yk"},{"name":"Yoğurt","amount":4,"unit":"yk"},{"name":"Tam buğday ekmek","amount":0.5,"unit":"dilim"}],"nutrition":{"kcal":280,"protein":10,"carb":25,"fat":16,"fiber":6},"recipe":"Girit Usulü Kabak Sıyırma"},{"id":"tavuklu-salata","name":"Yoğurt Soslu Tavuklu Salata","maxPerWeek":2,"ingredients":[{"name":"Doğranmış marul","amount":1,"unit":"avuç"},{"name":"Haşlanmış tavuk göğsü","amount":60,"unit":"g"},{"name":"Közlenmiş kırmızı biber","amount":1,"unit":"adet"},{"name":"Konserve mısır","amount":2,"unit":"yk"},{"name":"Yoğurt","amount":4,"unit":"yk"},{"name":"Light mayonez","amount":1,"unit":"tk","note":"isteğe bağlı"}],"nutrition":{"kcal":250,"protein":24,"carb":15,"fat":10,"fiber":3},"recipe":null},{"id":"kofte-pilav","name":"Köfte + Pirinç Pilavı + Salata","maxPerWeek":1,"ingredients":[{"name":"Köfte","amount":4,"unit":"adet"},{"name":"Basmati pirinç pilavı","amount":6,"unit":"yk"},{"name":"Pancarlı salata","amount":1,"unit":"porsiyon"},{"name":"Zeytinyağı (salata)","amount":2,"unit":"yk"}],"nutrition":{"kcal":700,"protein":38,"carb":58,"fat":35,"fiber":4},"recipe":null}]},{"id":"gece-atistirma","label":"Gece Atıştırma (Opsiyonel)","time":"Akşam sonrası","overcapacity":false,"slotMaxPerWeek":3,"options":[{"id":"yogurt-sebze","name":"Yoğurt + Sebze Dilimleri","maxPerWeek":3,"ingredients":[{"name":"Yoğurt","amount":1,"unit":"yk"},{"name":"Salatalık ve havuç dilimleri","amount":1,"unit":"porsiyon"}],"nutrition":{"kcal":45,"protein":2,"carb":5,"fat":2,"fiber":1},"recipe":null},{"id":"mersini-gece","name":"Yaban Mersini","maxPerWeek":3,"ingredients":[{"name":"Yaban mersini","amount":1.5,"unit":"avuç"}],"nutrition":{"kcal":65,"protein":1,"carb":16,"fat":0,"fiber":3},"recipe":null}]}]};
-
-// ── Init ───────────────────────────────────────────
-load();
-render();
-
-// PWA registration
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(e => console.log('SW reg failed:', e));
-}
-
-// Swipe gesture for day navigation
-let touchStartX = 0;
-document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
-document.addEventListener('touchend', e => {
-  if (state.currentTab !== 'planner' && state.currentTab !== 'nutrition') return;
-  const dx = e.changedTouches[0].clientX - touchStartX;
-  if (Math.abs(dx) > 60) {
-    if (dx < 0 && state.selectedDay < 6) selectDay(state.selectedDay + 1);
-    if (dx > 0 && state.selectedDay > 0) selectDay(state.selectedDay - 1);
-  }
-}, { passive: true });
+load();render();
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+let touchStartX=0;
+document.addEventListener('touchstart',e=>{touchStartX=e.touches[0].clientX},{passive:true});
+document.addEventListener('touchend',e=>{if(state.currentTab!=='planner'&&state.currentTab!=='nutrition')return;const dx=e.changedTouches[0].clientX-touchStartX;if(Math.abs(dx)>60){if(dx<0&&state.selectedDay<6)selectDay(state.selectedDay+1);if(dx>0&&state.selectedDay>0)selectDay(state.selectedDay-1)}},{passive:true});
 </script>
 </body>
 </html>
