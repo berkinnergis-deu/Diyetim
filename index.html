@@ -28,6 +28,14 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .view{display:none}.view.active{display:block}
 .day-strip{display:flex;gap:6px;padding:12px 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-shrink:0}
 .day-strip::-webkit-scrollbar{display:none}
+.week-nav{display:flex;align-items:center;justify-content:space-between;padding:10px 16px 0;flex-shrink:0}
+.week-nav-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--surface);border:1px solid var(--border);color:var(--text2);font-size:18px;font-weight:800;cursor:pointer}
+.week-nav-btn:active{background:var(--primary-soft);color:var(--primary)}
+.week-nav-btn:disabled{opacity:0.3;pointer-events:none}
+.week-nav-center{display:flex;flex-direction:column;align-items:center;gap:2px}
+.week-nav-range{font-size:13px;font-weight:800;color:var(--text)}
+.week-nav-today{font-size:10px;font-weight:700;color:var(--primary);cursor:pointer;padding:2px 8px;border-radius:99px;background:var(--primary-soft)}
+.week-nav-today.hidden{visibility:hidden}
 .day-chip{flex-shrink:0;width:50px;height:54px;border-radius:var(--radius-sm);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;background:var(--surface);border:2px solid var(--border);font-weight:700;font-size:11px;color:var(--text2);transition:all 0.15s}
 .day-chip span:first-child{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase}
 .day-chip.active{background:var(--primary);border-color:var(--primary);color:#fff}
@@ -160,39 +168,76 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 </div>
 <script>
 const DAYS=['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'],DAY_FULL=['Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi','Pazar'];
+const MONTHS_SHORT=['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
 const WATER_OPTIONS=[{label:'1 Bardak',sub:'200 ml',ml:200},{label:'1 Şişe',sub:'500 ml',ml:500},{label:'1 Büyük',sub:'750 ml',ml:750},{label:'1 Litre',sub:'1000 ml',ml:1000}];
-const LS={plan:'diyetim_plan',assign:'diyetim_assign',history:'diyetim_history',dark:'diyetim_dark',notes:'diyetim_notes',extras:'diyetim_extras',water:'diyetim_water',savedExtras:'diyetim_savedExtras'};
-let state={plan:null,assignments:{},notes:{},extras:{},water:{},savedExtras:[],history:[],selectedDay:0,currentTab:'planner'};
+const LS={plan:'diyetim_plan',weeks:'diyetim_weeks',history:'diyetim_history',dark:'diyetim_dark',savedExtras:'diyetim_savedExtras'};
+let state={plan:null,weeks:{},savedExtras:[],history:[],currentWeekKey:null,selectedDay:0,currentTab:'planner'};
 
-function save(){try{if(state.plan)localStorage.setItem(LS.plan,JSON.stringify(state.plan));localStorage.setItem(LS.assign,JSON.stringify(state.assignments));localStorage.setItem(LS.notes,JSON.stringify(state.notes));localStorage.setItem(LS.extras,JSON.stringify(state.extras));localStorage.setItem(LS.water,JSON.stringify(state.water));localStorage.setItem(LS.savedExtras,JSON.stringify(state.savedExtras));localStorage.setItem(LS.history,JSON.stringify(state.history));localStorage.setItem('diyetim_selDay',state.selectedDay)}catch(e){}}
-function load(){try{const p=localStorage.getItem(LS.plan);if(p)state.plan=JSON.parse(p);const a=localStorage.getItem(LS.assign);if(a)state.assignments=JSON.parse(a);const n=localStorage.getItem(LS.notes);if(n)state.notes=JSON.parse(n);const x=localStorage.getItem(LS.extras);if(x)state.extras=JSON.parse(x);const w=localStorage.getItem(LS.water);if(w)state.water=JSON.parse(w);const se=localStorage.getItem(LS.savedExtras);if(se)state.savedExtras=JSON.parse(se);const h=localStorage.getItem(LS.history);if(h)state.history=JSON.parse(h);const d=localStorage.getItem(LS.dark);if(d!==null)document.body.dataset.theme=d==='true'?'dark':'light';const sd=localStorage.getItem('diyetim_selDay');if(sd!==null)state.selectedDay=parseInt(sd);updateDarkToggle()}catch(e){}}
+// ── Date helpers (Monday-based week) ───────────────
+function mondayOf(date){const d=new Date(date.getFullYear(),date.getMonth(),date.getDate());const n=(d.getDay()+6)%7;d.setDate(d.getDate()-n);return d}
+function weekKey(date){const m=mondayOf(date);return m.getFullYear()+'-'+String(m.getMonth()+1).padStart(2,'0')+'-'+String(m.getDate()).padStart(2,'0')}
+function parseWeekKey(wk){const [y,mo,d]=wk.split('-').map(Number);return new Date(y,mo-1,d)}
+function shiftWeek(wk,nWeeks){const d=parseWeekKey(wk);d.setDate(d.getDate()+nWeeks*7);return weekKey(d)}
+function weekDays(wk){const m=parseWeekKey(wk),r=[];for(let i=0;i<7;i++){const d=new Date(m.getFullYear(),m.getMonth(),m.getDate()+i);r.push({day:d.getDate(),month:d.getMonth(),label:DAYS[i],full:DAY_FULL[i],isToday:isSameDay(d,new Date())})}return r}
+function isSameDay(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()}
+function todayDayIdx(){return(new Date().getDay()+6)%7}
+function todayWeekKey(){return weekKey(new Date())}
+function weekRangeLabel(wk){const days=weekDays(wk);const a=days[0],b=days[6];if(a.month===b.month)return `${a.day} - ${b.day} ${MONTHS_SHORT[a.month]}`;return `${a.day} ${MONTHS_SHORT[a.month]} - ${b.day} ${MONTHS_SHORT[b.month]}`}
 
-function getUsedCount(id){return Object.values(state.assignments).filter(v=>v===id).length}
-function getSlotUsedCount(sid){return Object.entries(state.assignments).filter(([k,v])=>k.split('-').slice(1).join('-')===sid&&v).length}
+// ── Week data accessor ─────────────────────────────
+function getWeek(){if(!state.weeks[state.currentWeekKey])state.weeks[state.currentWeekKey]={assignments:{},notes:{},extras:{},water:{}};return state.weeks[state.currentWeekKey]}
+
+// ── Storage ────────────────────────────────────────
+function save(){try{if(state.plan)localStorage.setItem(LS.plan,JSON.stringify(state.plan));localStorage.setItem(LS.weeks,JSON.stringify(state.weeks));localStorage.setItem(LS.savedExtras,JSON.stringify(state.savedExtras));localStorage.setItem(LS.history,JSON.stringify(state.history))}catch(e){}}
+function load(){try{
+  const p=localStorage.getItem(LS.plan);if(p)state.plan=JSON.parse(p);
+  const w=localStorage.getItem(LS.weeks);if(w)state.weeks=JSON.parse(w);
+  const se=localStorage.getItem(LS.savedExtras);if(se)state.savedExtras=JSON.parse(se);
+  const h=localStorage.getItem(LS.history);if(h)state.history=JSON.parse(h);
+  const d=localStorage.getItem(LS.dark);if(d!==null)document.body.dataset.theme=d==='true'?'dark':'light';
+  // MIGRATION: old flat format → week-based
+  const oldA=localStorage.getItem('diyetim_assign');
+  if(oldA){const tk=todayWeekKey();state.weeks[tk]={assignments:JSON.parse(oldA||'{}'),notes:JSON.parse(localStorage.getItem('diyetim_notes')||'{}'),extras:JSON.parse(localStorage.getItem('diyetim_extras')||'{}'),water:JSON.parse(localStorage.getItem('diyetim_water')||'{}')};
+    ['diyetim_assign','diyetim_notes','diyetim_extras','diyetim_water','diyetim_selDay'].forEach(k=>localStorage.removeItem(k));save()}
+  updateDarkToggle()
+}catch(e){console.error(e)}}
+
+// ── Frequency logic (now week-scoped) ──────────────
+function getUsedCount(id){return Object.values(getWeek().assignments).filter(v=>v===id).length}
+function getSlotUsedCount(sid){return Object.entries(getWeek().assignments).filter(([k,v])=>k.split('-').slice(1).join('-')===sid&&v).length}
 function getRemaining(o){return o.maxPerWeek-getUsedCount(o.id)}
-function isOptionAvailable(o,sid,d){const k=d+'-'+sid;if(state.assignments[k]===o.id)return true;if(getRemaining(o)<=0)return false;const s=state.plan?.slots?.find(x=>x.id===sid);if(s?.slotMaxPerWeek&&getSlotUsedCount(sid)>=s.slotMaxPerWeek&&!state.assignments[k])return false;return true}
-function getExtraNutrition(d,sid){return(state.extras[d+'-'+sid]||[]).reduce((a,e)=>({kcal:a.kcal+(e.kcal||0),protein:a.protein+(e.protein||0),carb:a.carb+(e.carb||0),fat:a.fat+(e.fat||0),fiber:a.fiber+(e.fiber||0)}),{kcal:0,protein:0,carb:0,fat:0,fiber:0})}
-function getDayNutrition(d){const n={kcal:0,protein:0,carb:0,fat:0,fiber:0};if(!state.plan)return n;for(const s of state.plan.slots){const k=d+'-'+s.id,oid=state.assignments[k];if(oid){const o=s.options.find(x=>x.id===oid);if(o?.nutrition){n.kcal+=o.nutrition.kcal||0;n.protein+=o.nutrition.protein||0;n.carb+=o.nutrition.carb||0;n.fat+=o.nutrition.fat||0;n.fiber+=o.nutrition.fiber||0}}const en=getExtraNutrition(d,s.id);n.kcal+=en.kcal;n.protein+=en.protein;n.carb+=en.carb;n.fat+=en.fat;n.fiber+=en.fiber}return n}
-function getDayWater(d){return(state.water[d]||[]).reduce((s,w)=>s+w.ml,0)}
+function isOptionAvailable(o,sid,d){const k=d+'-'+sid,a=getWeek().assignments;if(a[k]===o.id)return true;if(getRemaining(o)<=0)return false;const s=state.plan?.slots?.find(x=>x.id===sid);if(s?.slotMaxPerWeek&&getSlotUsedCount(sid)>=s.slotMaxPerWeek&&!a[k])return false;return true}
+function getExtraNutrition(d,sid){return(getWeek().extras[d+'-'+sid]||[]).reduce((a,e)=>({kcal:a.kcal+(e.kcal||0),protein:a.protein+(e.protein||0),carb:a.carb+(e.carb||0),fat:a.fat+(e.fat||0),fiber:a.fiber+(e.fiber||0)}),{kcal:0,protein:0,carb:0,fat:0,fiber:0})}
+function getDayNutrition(d){const n={kcal:0,protein:0,carb:0,fat:0,fiber:0};if(!state.plan)return n;const a=getWeek().assignments;for(const s of state.plan.slots){const k=d+'-'+s.id,oid=a[k];if(oid){const o=s.options.find(x=>x.id===oid);if(o?.nutrition){n.kcal+=o.nutrition.kcal||0;n.protein+=o.nutrition.protein||0;n.carb+=o.nutrition.carb||0;n.fat+=o.nutrition.fat||0;n.fiber+=o.nutrition.fiber||0}}const en=getExtraNutrition(d,s.id);n.kcal+=en.kcal;n.protein+=en.protein;n.carb+=en.carb;n.fat+=en.fat;n.fiber+=en.fiber}return n}
+function getDayWater(d){return(getWeek().water[d]||[]).reduce((s,w)=>s+w.ml,0)}
 function getWeekNutrition(){const t={kcal:0,protein:0,carb:0,fat:0,fiber:0};let f=0;for(let d=0;d<7;d++){const dn=getDayNutrition(d);if(dn.kcal>0)f++;t.kcal+=dn.kcal;t.protein+=dn.protein;t.carb+=dn.carb;t.fat+=dn.fat;t.fiber+=dn.fiber}const a=f?{kcal:Math.round(t.kcal/f),protein:Math.round(t.protein/f),carb:Math.round(t.carb/f),fat:Math.round(t.fat/f),fiber:Math.round(t.fiber/f)}:{kcal:0,protein:0,carb:0,fat:0,fiber:0};return{totals:t,filledDays:f,avg:a}}
-function getDayFilledCount(d){if(!state.plan)return 0;return state.plan.slots.filter(s=>state.assignments[d+'-'+s.id]).length}
+function getDayFilledCount(d){if(!state.plan)return 0;const a=getWeek().assignments;return state.plan.slots.filter(s=>a[d+'-'+s.id]).length}
 
 function goTab(t){state.currentTab=t;document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById('view-'+t).classList.add('active');document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));document.getElementById('mainScroll').scrollTop=0;render()}
 
 function render(){renderHeader();if(state.currentTab==='planner')renderPlanner();if(state.currentTab==='nutrition')renderNutrition();if(state.currentTab==='history')renderHistory();if(state.currentTab==='settings')renderSavedExtras()}
-function renderHeader(){const s=document.getElementById('headerSub'),i=document.getElementById('planInfo');if(state.plan){s.textContent=state.plan.dietitian||'Plan yüklendi';i.style.display='flex';document.getElementById('planInfoText').textContent=state.plan.dietitian||'';document.getElementById('planInfoWeek').textContent=state.plan.week||''}else{s.textContent='Plan yüklenmedi';i.style.display='none'}}
+function renderHeader(){const s=document.getElementById('headerSub'),i=document.getElementById('planInfo');if(state.plan){s.textContent=state.plan.dietitian||'Plan yüklendi';i.style.display='flex';document.getElementById('planInfoText').textContent=state.plan.dietitian||'';document.getElementById('planInfoWeek').textContent=weekRangeLabel(state.currentWeekKey)}else{s.textContent='Plan yüklenmedi';i.style.display='none'}}
 
-function renderDayStrip(){let h='<div class="day-strip">';for(let d=0;d<7;d++){const f=getDayFilledCount(d)>0;h+=`<button class="day-chip${d===state.selectedDay?' active':''}${f?' filled':''}" onclick="selectDay(${d})"><span>${DAYS[d]}</span><span>${d+14}</span></button>`}return h+'</div>'}
+function renderWeekNav(){const isToday=state.currentWeekKey===todayWeekKey();return `<div class="week-nav">
+  <button class="week-nav-btn" onclick="shiftCurrentWeek(-1)" aria-label="Önceki hafta">‹</button>
+  <div class="week-nav-center">
+    <span class="week-nav-range">${weekRangeLabel(state.currentWeekKey)}</span>
+    <span class="week-nav-today ${isToday?'hidden':''}" onclick="goToToday()">Bugüne Dön</span>
+  </div>
+  <button class="week-nav-btn" onclick="shiftCurrentWeek(1)" aria-label="Sonraki hafta">›</button>
+</div>`}
+
+function renderDayStrip(){const days=weekDays(state.currentWeekKey);let h='<div class="day-strip">';for(let d=0;d<7;d++){const f=getDayFilledCount(d)>0,isActive=d===state.selectedDay;h+=`<button class="day-chip${isActive?' active':''}${f?' filled':''}" onclick="selectDay(${d})" style="${days[d].isToday&&!isActive?'box-shadow:0 0 0 2px var(--primary)':''}"><span>${DAYS[d]}</span><span>${days[d].day}</span></button>`}return h+'</div>'}
 
 function renderPlanner(){const el=document.getElementById('plannerContent');if(!state.plan){el.innerHTML='<div class="empty-state"><div class="empty-icon">🥗</div><div class="empty-title">Henüz plan yüklenmedi</div><div class="empty-desc">Diyetisyeninizin PDF\'ini AI ile JSON\'a çevirin, ardından <a onclick="goTab(\'settings\')">Ayarlar</a> sekmesinden içe aktarın.</div></div>';return}
-const d=state.selectedDay;let h=renderDayStrip();h+='<div class="slots-container">';
+const d=state.selectedDay,week=getWeek();let h=renderWeekNav()+renderDayStrip();h+='<div class="slots-container">';
 // Water
 const wml=getDayWater(d),wl=(wml/1000).toFixed(1);
 h+=`<div class="water-section"><div class="water-header"><span class="water-label">💧 Su Takibi</span><span class="water-total">${wl}<span> L</span></span></div><div class="water-btns">`;
 for(const wo of WATER_OPTIONS)h+=`<button class="water-btn" onclick="addWater(${d},${wo.ml})"><span>${wo.label}</span><span class="water-btn-sub">${wo.sub}</span></button>`;
-h+='</div>';const wlog=state.water[d]||[];if(wlog.length){h+='<div class="water-log">';for(let i=wlog.length-1;i>=0;i--)h+=`<div class="water-log-item"><span>${wlog[i].time} — ${wlog[i].ml} ml</span><button class="water-undo" onclick="removeWater(${d},${i})">×</button></div>`;h+='</div>'}h+='</div>';
+h+='</div>';const wlog=week.water[d]||[];if(wlog.length){h+='<div class="water-log">';for(let i=wlog.length-1;i>=0;i--)h+=`<div class="water-log-item"><span>${wlog[i].time} — ${wlog[i].ml} ml</span><button class="water-undo" onclick="removeWater(${d},${i})">×</button></div>`;h+='</div>'}h+='</div>';
 // Slots
-for(const slot of state.plan.slots){const key=d+'-'+slot.id,aid=state.assignments[key],aopt=aid?slot.options.find(o=>o.id===aid):null,note=state.notes[key]||'',extras=state.extras[key]||[];
+for(const slot of state.plan.slots){const key=d+'-'+slot.id,aid=week.assignments[key],aopt=aid?slot.options.find(o=>o.id===aid):null,note=week.notes[key]||'',extras=week.extras[key]||[];
 h+='<div class="slot-card">';h+=`<div class="slot-header"><span class="slot-label">${esc(slot.label)}</span><span class="slot-time">${esc(slot.time||'')}</span></div>`;
 if(aopt){const n=aopt.nutrition;h+=`<div class="slot-assigned" onclick="openSheet('${slot.id}')"><div><div class="slot-assigned-name">${esc(aopt.name)}</div><div style="font-size:12px;color:var(--text2);margin-top:2px">${n?.kcal||'?'} kcal · P${n?.protein||0} K${n?.carb||0} Y${n?.fat||0}</div></div><button class="slot-remove" onclick="event.stopPropagation();unassign('${key}')">×</button></div>`}
 else{h+=`<div class="slot-empty" onclick="openSheet('${slot.id}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Seçenek Ata</div>`}
@@ -207,15 +252,15 @@ for(const slot of state.plan.slots){h+=`<div class="freq-slot-title">${esc(slot.
 el.innerHTML=h}
 
 function renderNutrition(){const el=document.getElementById('nutritionContent');if(!state.plan){el.innerHTML='<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">Plan yükleyin</div></div>';return}
-const d=state.selectedDay,dn=getDayNutrition(d),wn=getWeekNutrition(),wml=getDayWater(d);
-let h=renderDayStrip();h+=`<div class="nutr-day-header">${DAY_FULL[d]} — Günlük Özet</div><div class="nutr-totals">`;
+const d=state.selectedDay,dn=getDayNutrition(d),wn=getWeekNutrition(),wml=getDayWater(d),week=getWeek();
+let h=renderWeekNav()+renderDayStrip();h+=`<div class="nutr-day-header">${DAY_FULL[d]} — Günlük Özet</div><div class="nutr-totals">`;
 h+=nc('kcal',dn.kcal,'kcal','Kalori',1)+nc('p',dn.protein,'g','Protein')+nc('c',dn.carb,'g','Karbonhidrat')+nc('f',dn.fat,'g','Yağ')+nc('fi',dn.fiber,'g','Lif');
 h+=`<div class="nutr-card"><div class="nutr-val" style="color:var(--cyan)">${(wml/1000).toFixed(1)}<span style="font-size:14px;font-weight:600"> L</span></div><div class="nutr-label">Su</div></div></div>`;
 h+='<div class="week-summary">'+`<div class="week-summary-title">Haftalık Özet (${wn.filledDays}/7 gün)</div>`;
 [['Toplam Kalori',wn.totals.kcal+' kcal'],['Ort. Kalori/Gün',wn.avg.kcal+' kcal'],['Ort. Protein',wn.avg.protein+' g'],['Ort. Karbonhidrat',wn.avg.carb+' g'],['Ort. Yağ',wn.avg.fat+' g'],['Ort. Lif',wn.avg.fiber+' g']].forEach(([l,v])=>h+=`<div class="ws-row"><span class="ws-label">${l}</span><span class="ws-val">${v}</span></div>`);
 h+='</div>';
 h+=`<div class="week-summary"><div class="week-summary-title">${DAY_FULL[d]} — Öğün Detayları</div>`;
-for(const slot of state.plan.slots){const key=d+'-'+slot.id,oid=state.assignments[key],opt=oid?slot.options.find(o=>o.id===oid):null,en=getExtraNutrition(d,slot.id),tk=(opt?.nutrition?.kcal||0)+en.kcal,extras=state.extras[key]||[];let det=opt?esc(opt.name):'—';if(extras.length)det+=' + '+extras.map(e=>esc(e.name)).join(', ');
+for(const slot of state.plan.slots){const key=d+'-'+slot.id,oid=week.assignments[key],opt=oid?slot.options.find(o=>o.id===oid):null,en=getExtraNutrition(d,slot.id),tk=(opt?.nutrition?.kcal||0)+en.kcal,extras=week.extras[key]||[];let det=opt?esc(opt.name):'—';if(extras.length)det+=' + '+extras.map(e=>esc(e.name)).join(', ');
 h+=`<div class="ws-row"><div><span class="ws-label">${esc(slot.label)}</span><br><span style="font-size:11px;color:var(--text3)">${det}</span></div><span class="ws-val">${tk?tk+' kcal':'—'}</span></div>`}
 h+='</div>';el.innerHTML=h}
 function nc(c,v,u,l,w){return`<div class="nutr-card${w?' wide':''}"><div class="nutr-val ${c}">${v}<span style="font-size:14px;font-weight:600"> ${u}</span></div><div class="nutr-label">${l}</div></div>`}
@@ -227,16 +272,18 @@ h+='<div class="settings-section"><button class="btn btn-danger" onclick="clearH
 function renderSavedExtras(){const el=document.getElementById('savedExtrasList');if(!el)return;if(!state.savedExtras.length){el.innerHTML='<p style="font-size:12px;color:var(--text3)">Henüz kayıtlı ekstra yok.</p>';return}
 let h='';for(let i=0;i<state.savedExtras.length;i++){const e=state.savedExtras[i];h+=`<div class="saved-extra"><div><span class="saved-extra-name">${esc(e.name)}</span><br><span class="saved-extra-info">${e.kcal} kcal · P${e.protein||0} K${e.carb||0} Y${e.fat||0}</span></div><button class="extra-remove" onclick="event.stopPropagation();removeSavedExtra(${i})">×</button></div>`}el.innerHTML=h}
 
-function selectDay(d){state.selectedDay=d;localStorage.setItem('diyetim_selDay',d);render()}
+function selectDay(d){state.selectedDay=d;render()}
+function shiftCurrentWeek(n){state.currentWeekKey=shiftWeek(state.currentWeekKey,n);save();render()}
+function goToToday(){state.currentWeekKey=todayWeekKey();state.selectedDay=todayDayIdx();save();render()}
 function openSheet(sid){const s=state.plan.slots.find(x=>x.id===sid);if(!s)return;document.getElementById('sheetTitle').textContent=s.label+' — Seçenek Seç';
-let h='';for(const o of s.options){const r=getRemaining(o),av=isOptionAvailable(o,sid,state.selectedDay),ck=state.selectedDay+'-'+sid,ia=state.assignments[ck]===o.id;
+let h='',a=getWeek().assignments;for(const o of s.options){const r=getRemaining(o),av=isOptionAvailable(o,sid,state.selectedDay),ck=state.selectedDay+'-'+sid,ia=a[ck]===o.id;
 h+=`<div class="option-card${!av&&!ia?' disabled':''}" onclick="assignOption('${sid}','${o.id}')" style="${ia?'border-color:var(--green);background:var(--green-soft);':''}"><div class="option-card-top"><span class="option-name">${esc(o.name)}</span><span class="option-badge${r<=0?' zero':''}">${r}/${o.maxPerWeek}</span></div><div class="option-ingredients">${o.ingredients.map(i=>`${i.amount} ${i.unit} ${i.name}${i.note?' ('+i.note+')':''}`).join(', ')}</div><div class="option-macros"><span class="macro-pill kcal">${o.nutrition?.kcal||'?'} kcal</span><span class="macro-pill p">P ${o.nutrition?.protein||0}g</span><span class="macro-pill c">K ${o.nutrition?.carb||0}g</span><span class="macro-pill f">Y ${o.nutrition?.fat||0}g</span></div>${o.recipe?`<div class="slot-note-hint">📖 ${esc(o.recipe)}</div>`:''}</div>`}
 document.getElementById('sheetBody').innerHTML=h;showSheet()}
 function showSheet(){document.getElementById('sheetOverlay').classList.add('open');document.getElementById('sheet').classList.add('open')}
 function closeSheet(){document.getElementById('sheetOverlay').classList.remove('open');document.getElementById('sheet').classList.remove('open')}
-function assignOption(sid,oid){const k=state.selectedDay+'-'+sid;if(state.assignments[k]===oid)delete state.assignments[k];else{const s=state.plan.slots.find(x=>x.id===sid),o=s?.options.find(x=>x.id===oid);if(o&&isOptionAvailable(o,sid,state.selectedDay))state.assignments[k]=oid}save();closeSheet();render()}
-function unassign(k){delete state.assignments[k];save();render()}
-function saveNote(k,v){if(v.trim())state.notes[k]=v.trim();else delete state.notes[k];save()}
+function assignOption(sid,oid){const k=state.selectedDay+'-'+sid,w=getWeek();if(w.assignments[k]===oid)delete w.assignments[k];else{const s=state.plan.slots.find(x=>x.id===sid),o=s?.options.find(x=>x.id===oid);if(o&&isOptionAvailable(o,sid,state.selectedDay))w.assignments[k]=oid}save();closeSheet();render()}
+function unassign(k){delete getWeek().assignments[k];save();render()}
+function saveNote(k,v){const w=getWeek();if(v.trim())w.notes[k]=v.trim();else delete w.notes[k];save()}
 function autoGrow(el){el.style.height='auto';el.style.height=el.scrollHeight+'px'}
 
 let currentExtraKey=null;
@@ -251,36 +298,40 @@ h+='<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:v
 document.getElementById('sheetBody').innerHTML=h;showSheet()}
 function addExtraFromJson(){const raw=document.getElementById('extraJsonInput').value.trim(),msg=document.getElementById('extraMsg');if(!raw){msg.innerHTML='<div class="msg msg-err">JSON boş.</div>';return}
 try{const d=JSON.parse(raw);if(!d.name)throw new Error('name gerekli');const e={name:d.name,kcal:Number(d.kcal)||0,protein:Number(d.protein)||0,carb:Number(d.carb)||0,fat:Number(d.fat)||0,fiber:Number(d.fiber)||0};
-if(!state.extras[currentExtraKey])state.extras[currentExtraKey]=[];state.extras[currentExtraKey].push(e);
+const w=getWeek();if(!w.extras[currentExtraKey])w.extras[currentExtraKey]=[];w.extras[currentExtraKey].push(e);
 const sc=document.getElementById('saveExtraCheck');if(sc&&sc.checked&&!state.savedExtras.find(s=>s.name===e.name))state.savedExtras.push({...e,id:'ex-'+Date.now()});
 save();closeSheet();render()}catch(e){msg.innerHTML=`<div class="msg msg-err">${esc(e.message)}</div>`}}
-function addSavedExtra(i){const e=state.savedExtras[i];if(!e||!currentExtraKey)return;if(!state.extras[currentExtraKey])state.extras[currentExtraKey]=[];state.extras[currentExtraKey].push({name:e.name,kcal:e.kcal,protein:e.protein,carb:e.carb,fat:e.fat,fiber:e.fiber});save();closeSheet();render()}
-function removeExtra(k,i){if(state.extras[k]){state.extras[k].splice(i,1);if(!state.extras[k].length)delete state.extras[k]}save();render()}
+function addSavedExtra(i){const e=state.savedExtras[i];if(!e||!currentExtraKey)return;const w=getWeek();if(!w.extras[currentExtraKey])w.extras[currentExtraKey]=[];w.extras[currentExtraKey].push({name:e.name,kcal:e.kcal,protein:e.protein,carb:e.carb,fat:e.fat,fiber:e.fiber});save();closeSheet();render()}
+function removeExtra(k,i){const w=getWeek();if(w.extras[k]){w.extras[k].splice(i,1);if(!w.extras[k].length)delete w.extras[k]}save();render()}
 function removeSavedExtra(i){if(!confirm('Silmek istediğinize emin misiniz?'))return;state.savedExtras.splice(i,1);save();renderSavedExtras()}
 function openAddSavedExtraSheet(){document.getElementById('sheetTitle').textContent='Kayıtlı Ekstra Ekle';
 document.getElementById('sheetBody').innerHTML='<textarea id="savedExtraJsonInput" class="import-area" style="min-height:80px" placeholder=\'{"name":"Muz","kcal":105,"protein":1,"carb":27,"fat":0,"fiber":3}\'></textarea><div style="height:8px"></div><button class="btn btn-primary btn-sm" onclick="addSavedExtraFromJson()">Kaydet</button><div id="savedExtraMsg" style="margin-top:8px"></div>';showSheet()}
 function addSavedExtraFromJson(){const raw=document.getElementById('savedExtraJsonInput').value.trim(),msg=document.getElementById('savedExtraMsg');
 try{const d=JSON.parse(raw);if(!d.name)throw new Error('name gerekli');state.savedExtras.push({id:'ex-'+Date.now(),name:d.name,kcal:Number(d.kcal)||0,protein:Number(d.protein)||0,carb:Number(d.carb)||0,fat:Number(d.fat)||0,fiber:Number(d.fiber)||0});save();closeSheet();renderSavedExtras()}catch(e){msg.innerHTML=`<div class="msg msg-err">${esc(e.message)}</div>`}}
 
-function addWater(d,ml){if(!state.water[d])state.water[d]=[];const now=new Date();state.water[d].push({ml,time:now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0')});save();render()}
-function removeWater(d,i){if(state.water[d]){state.water[d].splice(i,1);if(!state.water[d].length)delete state.water[d]}save();render()}
+function addWater(d,ml){const w=getWeek();if(!w.water[d])w.water[d]=[];const now=new Date();w.water[d].push({ml,time:now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0')});save();render()}
+function removeWater(d,i){const w=getWeek();if(w.water[d]){w.water[d].splice(i,1);if(!w.water[d].length)delete w.water[d]}save();render()}
 
 function importPlan(){const area=document.getElementById('importArea'),msg=document.getElementById('importMsg'),raw=area.value.trim();if(!raw){msg.innerHTML='<div class="msg msg-err">JSON boş olamaz.</div>';return}
 try{const d=JSON.parse(raw);if(!d.slots||!Array.isArray(d.slots))throw new Error('slots dizisi eksik');for(const s of d.slots){if(!s.id||!s.label||!Array.isArray(s.options))throw new Error(`Slot "${s.id||'?'}" hatalı`);for(const o of s.options)if(!o.id||!o.name||typeof o.maxPerWeek!=='number')throw new Error(`Seçenek "${o.id||'?'}" hatalı`)}
-state.plan=d;state.assignments={};state.notes={};state.extras={};state.water={};save();msg.innerHTML='<div class="msg msg-ok">Plan başarıyla yüklendi! ✓</div>';area.value='';render();setTimeout(()=>goTab('planner'),600)}catch(e){msg.innerHTML=`<div class="msg msg-err">Hata: ${esc(e.message)}</div>`}}
-function loadSample(){state.plan=JSON.parse(JSON.stringify(SAMPLE_PLAN));state.assignments={};state.notes={};state.extras={};state.water={};save();document.getElementById('importMsg').innerHTML='<div class="msg msg-ok">Örnek plan yüklendi! ✓</div>';render();setTimeout(()=>goTab('planner'),600)}
-function exportData(){const b=new Blob([JSON.stringify({plan:state.plan,assignments:state.assignments,notes:state.notes,extras:state.extras,water:state.water,savedExtras:state.savedExtras,history:state.history},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='diyetim-backup.json';a.click()}
-function archiveWeek(){if(!state.plan)return alert('Aktif plan yok.');if(!confirm('Bu haftayı arşivlemek istiyor musunuz?'))return;state.history.push({week:state.plan.week||new Date().toISOString().slice(0,10),dietitian:state.plan.dietitian,plan:JSON.parse(JSON.stringify(state.plan)),assignments:JSON.parse(JSON.stringify(state.assignments)),notes:JSON.parse(JSON.stringify(state.notes)),extras:JSON.parse(JSON.stringify(state.extras)),water:JSON.parse(JSON.stringify(state.water)),archivedAt:new Date().toISOString()});state.assignments={};state.notes={};state.extras={};state.water={};save();render();alert('Arşivlendi.')}
-function resetWeek(){if(!confirm('Tüm verileri sıfırlamak istiyor musunuz?'))return;state.assignments={};state.notes={};state.extras={};state.water={};save();render()}
+state.plan=d;save();msg.innerHTML='<div class="msg msg-ok">Plan başarıyla yüklendi! ✓</div>';area.value='';render();setTimeout(()=>goTab('planner'),600)}catch(e){msg.innerHTML=`<div class="msg msg-err">Hata: ${esc(e.message)}</div>`}}
+function loadSample(){state.plan=JSON.parse(JSON.stringify(SAMPLE_PLAN));save();document.getElementById('importMsg').innerHTML='<div class="msg msg-ok">Örnek plan yüklendi! ✓</div>';render();setTimeout(()=>goTab('planner'),600)}
+function exportData(){const b=new Blob([JSON.stringify({plan:state.plan,weeks:state.weeks,savedExtras:state.savedExtras,history:state.history},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='diyetim-backup.json';a.click()}
+function archiveWeek(){if(!state.plan)return alert('Aktif plan yok.');if(!confirm('Bu haftayı arşivlemek istiyor musunuz?'))return;const w=getWeek();state.history.push({week:state.currentWeekKey,dietitian:state.plan.dietitian,plan:JSON.parse(JSON.stringify(state.plan)),assignments:JSON.parse(JSON.stringify(w.assignments)),notes:JSON.parse(JSON.stringify(w.notes)),extras:JSON.parse(JSON.stringify(w.extras)),water:JSON.parse(JSON.stringify(w.water)),archivedAt:new Date().toISOString()});delete state.weeks[state.currentWeekKey];save();render();alert('Arşivlendi.')}
+function resetWeek(){if(!confirm('Bu haftanın tüm verilerini sıfırlamak istiyor musunuz?'))return;delete state.weeks[state.currentWeekKey];save();render()}
 function clearHistory(){if(!confirm('Tüm geçmişi silmek istiyor musunuz?'))return;state.history=[];save();renderHistory()}
-function loadHistoryItem(i){const h=state.history[i];if(!h||!confirm(`${h.week} planını yüklemek istiyor musunuz?`))return;state.plan=h.plan;state.assignments=h.assignments||{};state.notes=h.notes||{};state.extras=h.extras||{};state.water=h.water||{};save();goTab('planner')}
+function loadHistoryItem(i){const h=state.history[i];if(!h||!confirm(`${h.week} planını yüklemek istiyor musunuz?`))return;state.plan=h.plan;state.weeks[h.week||todayWeekKey()]={assignments:h.assignments||{},notes:h.notes||{},extras:h.extras||{},water:h.water||{}};state.currentWeekKey=h.week||todayWeekKey();save();goTab('planner')}
 function toggleDark(){const d=document.body.dataset.theme==='dark';document.body.dataset.theme=d?'light':'dark';localStorage.setItem(LS.dark,!d);updateDarkToggle()}
 function updateDarkToggle(){const t=document.getElementById('darkToggle');if(t)t.classList.toggle('on',document.body.dataset.theme==='dark')}
 function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML}
 
 const SAMPLE_PLAN={"week":"2026-W16","dietitian":"Uzman Diyetisyen Pınar Ezgi","notes":["Sabah uyanınca 1 büyük bardak su içilerek başlansın.","Akşam yemeğinden sonra herhangi bir şey tüketilmemeye çalışılsın."],"slots":[{"id":"ilk-ogun","label":"İlk Öğün","time":"09:00 - 10:00","overcapacity":false,"options":[{"id":"beyaz-smoothie","name":"Beyaz Smoothie","maxPerWeek":2,"ingredients":[{"name":"Hurma","amount":3,"unit":"adet"},{"name":"Ceviz veya kaju","amount":5,"unit":"adet"},{"name":"Tarçın","amount":1,"unit":"tutam"},{"name":"Yarım yağlı süt","amount":1.5,"unit":"sb"}],"nutrition":{"kcal":395,"protein":11,"carb":52,"fat":17,"fiber":4},"recipe":null},{"id":"omlet","name":"Mantarlı/Ispanaklı Omlet","maxPerWeek":2,"ingredients":[{"name":"Yumurta","amount":2,"unit":"adet"},{"name":"Beyaz veya lor peyniri","amount":2,"unit":"yk"},{"name":"Mantar veya ıspanak","amount":1,"unit":"avuç"},{"name":"Yeşil zeytin","amount":8,"unit":"adet"},{"name":"Beyaz peynir","amount":1,"unit":"dilim"},{"name":"Yeşillik, salatalık, domates","amount":1,"unit":"porsiyon","note":"sınırsız, yağsız"}],"nutrition":{"kcal":420,"protein":28,"carb":5,"fat":32,"fiber":2},"recipe":null},{"id":"haslanmis-yumurta","name":"Haşlanmış Yumurta Tabağı","maxPerWeek":3,"ingredients":[{"name":"Haşlanmış yumurta","amount":2,"unit":"adet"},{"name":"Peynir (3 parmak kalınlığında)","amount":1.5,"unit":"dilim"},{"name":"Ceviz içi","amount":4,"unit":"adet"},{"name":"Yeşillik, salatalık, domates","amount":1,"unit":"porsiyon","note":"sınırsız, yağsız"},{"name":"Tam buğday ekmek","amount":1,"unit":"dilim"}],"nutrition":{"kcal":445,"protein":26,"carb":20,"fat":30,"fiber":3},"recipe":null}]},{"id":"ara-1","label":"1. Ara Öğün","time":"12:30 - 13:00","overcapacity":false,"options":[{"id":"elma-mersini","name":"Yeşil Elma / Yaban Mersini","maxPerWeek":2,"ingredients":[{"name":"Yeşil elma veya yaban mersini","amount":1,"unit":"adet/avuç"}],"nutrition":{"kcal":95,"protein":1,"carb":25,"fat":0,"fiber":4},"recipe":null},{"id":"soda-badem","name":"Soda + Çiğ Badem","maxPerWeek":2,"ingredients":[{"name":"Sade soda","amount":1,"unit":"bardak"},{"name":"Çiğ badem","amount":15,"unit":"adet"}],"nutrition":{"kcal":105,"protein":4,"carb":4,"fat":9,"fiber":2},"recipe":null},{"id":"kefir-kaju","name":"Kefir/Ayran + Kaju/Badem","maxPerWeek":3,"ingredients":[{"name":"Sade kefir veya ayran","amount":1,"unit":"bardak"},{"name":"Çiğ kaju veya badem","amount":5,"unit":"adet"}],"nutrition":{"kcal":110,"protein":5,"carb":7,"fat":7,"fiber":1},"recipe":null}]},{"id":"ara-2","label":"2. Ara Öğün","time":"16:30 - 17:00","overcapacity":false,"options":[{"id":"wasa-fistik","name":"Wasa + Fıstık Ezmesi + Meyve","maxPerWeek":2,"ingredients":[{"name":"Wasa ekmek veya pirinç patlağı","amount":1,"unit":"dilim"},{"name":"Şekersiz fıstık ezmesi","amount":1,"unit":"yk"},{"name":"Muz/elma/çilek (dilimlenmiş)","amount":1,"unit":"porsiyon"}],"nutrition":{"kcal":185,"protein":5,"carb":22,"fat":9,"fiber":2},"recipe":null},{"id":"meyve-2","name":"Meyve (Elma/Muz/Mersini)","maxPerWeek":3,"ingredients":[{"name":"Yeşil elma veya ufak muz veya yaban mersini","amount":1,"unit":"adet/avuç"}],"nutrition":{"kcal":95,"protein":1,"carb":25,"fat":0,"fiber":3},"recipe":null},{"id":"activia-chia","name":"Activia Yoğurt + Chia","maxPerWeek":2,"ingredients":[{"name":"Activia yoğurt","amount":1,"unit":"kutu"},{"name":"Chia tohumu","amount":1,"unit":"tk"}],"nutrition":{"kcal":100,"protein":5,"carb":12,"fat":4,"fiber":3},"recipe":null}]},{"id":"aksam","label":"Akşam Yemeği","time":"21:30","overcapacity":true,"options":[{"id":"somon-salata","name":"Fırında Somon + Patates + Salata","maxPerWeek":1,"ingredients":[{"name":"Norveç somonu","amount":1,"unit":"dilim"},{"name":"Patates (fırında)","amount":5,"unit":"dilim"},{"name":"Zeytinyağı (marine)","amount":1,"unit":"yk"},{"name":"4 Renkli salata","amount":1,"unit":"porsiyon"},{"name":"Zeytinyağı (salata)","amount":2,"unit":"yk"}],"nutrition":{"kcal":620,"protein":32,"carb":35,"fat":38,"fiber":5},"recipe":null},{"id":"baklagil-salata","name":"Baklagilli Salata","maxPerWeek":1,"ingredients":[{"name":"Karışık sebze salatası","amount":1,"unit":"kase"},{"name":"Haşlanmış mercimek veya maş fasulyesi","amount":5,"unit":"yk"},{"name":"Haşlanmış mısır","amount":2,"unit":"yk"},{"name":"Zeytinyağı","amount":2,"unit":"yk"}],"nutrition":{"kcal":390,"protein":16,"carb":38,"fat":20,"fiber":10},"recipe":null},{"id":"sebze-yemegi","name":"Sebze Yemeği + Yoğurt","maxPerWeek":3,"ingredients":[{"name":"Sebze yemeği","amount":12,"unit":"yk"},{"name":"Yoğurt","amount":4,"unit":"yk"},{"name":"Tam buğday ekmek","amount":0.5,"unit":"dilim"}],"nutrition":{"kcal":280,"protein":10,"carb":25,"fat":16,"fiber":6},"recipe":"Girit Usulü Kabak Sıyırma"},{"id":"tavuklu-salata","name":"Yoğurt Soslu Tavuklu Salata","maxPerWeek":2,"ingredients":[{"name":"Doğranmış marul","amount":1,"unit":"avuç"},{"name":"Haşlanmış tavuk göğsü","amount":60,"unit":"g"},{"name":"Közlenmiş kırmızı biber","amount":1,"unit":"adet"},{"name":"Konserve mısır","amount":2,"unit":"yk"},{"name":"Yoğurt","amount":4,"unit":"yk"},{"name":"Light mayonez","amount":1,"unit":"tk","note":"isteğe bağlı"}],"nutrition":{"kcal":250,"protein":24,"carb":15,"fat":10,"fiber":3},"recipe":null},{"id":"kofte-pilav","name":"Köfte + Pirinç Pilavı + Salata","maxPerWeek":1,"ingredients":[{"name":"Köfte","amount":4,"unit":"adet"},{"name":"Basmati pirinç pilavı","amount":6,"unit":"yk"},{"name":"Pancarlı salata","amount":1,"unit":"porsiyon"},{"name":"Zeytinyağı (salata)","amount":2,"unit":"yk"}],"nutrition":{"kcal":700,"protein":38,"carb":58,"fat":35,"fiber":4},"recipe":null}]},{"id":"gece-atistirma","label":"Gece Atıştırma (Opsiyonel)","time":"Akşam sonrası","overcapacity":false,"slotMaxPerWeek":3,"options":[{"id":"yogurt-sebze","name":"Yoğurt + Sebze Dilimleri","maxPerWeek":3,"ingredients":[{"name":"Yoğurt","amount":1,"unit":"yk"},{"name":"Salatalık ve havuç dilimleri","amount":1,"unit":"porsiyon"}],"nutrition":{"kcal":45,"protein":2,"carb":5,"fat":2,"fiber":1},"recipe":null},{"id":"mersini-gece","name":"Yaban Mersini","maxPerWeek":3,"ingredients":[{"name":"Yaban mersini","amount":1.5,"unit":"avuç"}],"nutrition":{"kcal":65,"protein":1,"carb":16,"fat":0,"fiber":3},"recipe":null}]}]};
 
-load();render();
+load();
+// Always open at today's week & day
+state.currentWeekKey=todayWeekKey();
+state.selectedDay=todayDayIdx();
+render();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 let touchStartX=0;
 document.addEventListener('touchstart',e=>{touchStartX=e.touches[0].clientX},{passive:true});
