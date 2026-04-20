@@ -101,6 +101,22 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .slot-note-hint{font-size:11px;color:var(--text3);font-style:italic;margin-top:4px}
 .saved-extra{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;cursor:pointer}.saved-extra:active{background:var(--blue-soft);border-color:var(--blue)}
 .saved-extra-name{font-weight:700;font-size:13px}.saved-extra-info{font-size:11px;color:var(--text2)}
+.supp-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.supp-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;min-height:30px;border:1.5px solid;-webkit-tap-highlight-color:transparent}
+.supp-chip.taken{opacity:.55;text-decoration:line-through}
+.supp-chip svg{width:13px;height:13px;flex-shrink:0}
+.supp-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:800}
+.supp-settings-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px}
+.supp-settings-item .supp-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.supp-settings-name{font-weight:700;font-size:13px}.supp-settings-detail{font-size:11px;color:var(--text3);margin-top:1px}
+.supp-settings-actions{display:flex;gap:2px}.supp-settings-actions button{padding:6px;color:var(--text3);font-size:14px;font-weight:800}
+.supp-form{margin-top:12px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
+.supp-form label{display:block;font-size:11px;font-weight:700;color:var(--text3);margin-bottom:3px;margin-top:8px}
+.supp-form label:first-child{margin-top:0}
+.supp-form input,.supp-form select{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg2);color:var(--text);font-size:13px;font-family:inherit}
+.supp-form input:focus,.supp-form select:focus{outline:none;border-color:var(--primary)}
+.supp-form-row{display:flex;gap:8px}
+.supp-form-btns{display:flex;gap:8px;margin-top:12px}
 @media(min-width:640px){.app{max-width:480px;margin:0 auto}}
 </style>
 </head>
@@ -116,9 +132,10 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 <div class="view" id="view-settings">
 <div class="settings-section"><h2>Plan İçe Aktar</h2><div id="importMsg"></div><textarea class="import-area" id="importArea" placeholder="JSON yapıştırın..."></textarea><div style="height:10px"></div><button class="btn btn-primary" onclick="importPlan()">Planı Yükle</button><button class="btn btn-outline" onclick="loadSample()">Örnek Plan Yükle</button></div>
 <div class="settings-section"><h2>Kayıtlı Ekstra Yiyecekler</h2><div id="savedExtrasList"></div><button class="btn btn-outline btn-sm" onclick="openAddSavedExtraSheet()" style="margin-top:8px">+ Yeni Ekstra Ekle</button></div>
+<div class="settings-section"><h2>💊 Takviyeler</h2><div id="suppList"></div><button class="btn btn-outline btn-sm" onclick="openSuppForm('new')" style="margin-top:8px">+ Yeni Takviye Ekle</button><div id="suppFormContainer"></div></div>
 <div class="settings-section"><h2>Görünüm</h2><div class="toggle-row"><span class="toggle-label">Karanlık Mod</span><div class="toggle" id="darkToggle" onclick="toggleDark()"></div></div></div>
 <div class="settings-section"><h2>Veri Yönetimi</h2><button class="btn btn-outline" onclick="exportData()">Verileri Dışa Aktar</button><button class="btn btn-outline" onclick="archiveWeek()">Bu Haftayı Arşivle</button><button class="btn btn-danger" onclick="resetWeek()">Haftalık Planı Sıfırla</button></div>
-<div class="settings-section" style="padding-bottom:32px"><h2>Hakkında</h2><p style="font-size:13px;color:var(--text2)">Diyetim v1.2 — Veriler bu cihazda saklanır.</p></div>
+<div class="settings-section" style="padding-bottom:32px"><h2>Hakkında</h2><p style="font-size:13px;color:var(--text2)">Diyetim v1.3 — Takviye takip modülü ile.</p></div>
 </div>
 </div>
 <nav class="tab-bar">
@@ -151,11 +168,36 @@ function weekLabel(wk){var ds=weekDates(wk);return ds[0].getDate()+' '+MON[ds[0]
 // ═══ STATE ═══
 var S={plan:null,weeks:{},savedExtras:[],history:[],wk:todayWK(),day:todayIdx(),tab:'planner'};
 
+// ═══ SUPPLEMENT STATE ═══
+var DEFAULT_SUPPS=[
+{id:'b12',name:'B12',dose:1,unit:'tablet',slotId:'ilk-ogun',note:'Methylcobalamin, sabah yemekle'},
+{id:'omega3',name:'Omega-3',dose:1,unit:'kapsül',slotId:'aksam',note:'Yağlı öğünle — emilim için'},
+{id:'mag-sabah',name:'Magnesium',dose:1,unit:'kapsül',slotId:'ilk-ogun',note:'D3 aktivasyonu için sabah dozu'},
+{id:'mag-aksam',name:'Magnesium',dose:2,unit:'kapsül',slotId:'gece-atistirma',note:'Uyku desteği — son öğün'},
+{id:'vitc-sabah',name:'Vitamin C',dose:1,unit:'tablet',slotId:'ilk-ogun',note:'~200mg/doz emilim tavanı'},
+{id:'vitc-aksam',name:'Vitamin C',dose:1,unit:'tablet',slotId:'aksam',note:'İkinci doz — akşam yemeğiyle'},
+{id:'vitd3',name:'D3+K2',dose:1,unit:'damla',slotId:'ilk-ogun',note:'Yağlı yemekle — K2 eşlemesi zorunlu'},
+{id:'ashwagandha',name:'Ashwagandha',dose:1,unit:'kapsül',slotId:'gece-atistirma',note:'Kortizol regülasyonu'},
+{id:'turmeric',name:'Turmeric',dose:1,unit:'kapsül',slotId:'aksam',note:'Kurkumin — yağla emilim'}
+];
+var SUPP_COLORS={B12:'#DC2658','Omega-3':'#0891B2',Magnesium:'#7C3AED','Vitamin C':'#F59E0B','D3+K2':'#F97316',Ashwagandha:'#3D7A4A',Turmeric:'#CA8A04'};
+function suppColor(name){return SUPP_COLORS[name]||'var(--text3)'}
+var suppState={supps:null,checked:{}}; // checked keyed by dateKey: {dateKey:{suppId:true}}
+function dateKeyForDay(dayIdx){var ds=weekDates(S.wk);var d=ds[dayIdx];return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function todayDateKey(){var n=new Date();return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0')}
+function getSupps(){if(!suppState.supps)suppState.supps=JSON.parse(JSON.stringify(DEFAULT_SUPPS));return suppState.supps}
+function suppsBySlot(slotId){return getSupps().filter(function(s){return s.slotId===slotId})}
+function isSuppTaken(suppId,dayIdx){var dk=dateKeyForDay(dayIdx);return!!(suppState.checked[dk]&&suppState.checked[dk][suppId])}
+function toggleSupp(suppId,dayIdx){var dk=dateKeyForDay(dayIdx);if(!suppState.checked[dk])suppState.checked[dk]={};suppState.checked[dk][suppId]=!suppState.checked[dk][suppId];saveSupps();render()}
+function suppSummary(dayIdx){var supps=getSupps(),dk=dateKeyForDay(dayIdx),taken=0;supps.forEach(function(s){if(suppState.checked[dk]&&suppState.checked[dk][s.id])taken++});return{taken:taken,total:supps.length}}
+
 // ═══ WEEK DATA ACCESSOR ═══
 function W(){if(!S.weeks[S.wk])S.weeks[S.wk]={a:{},n:{},x:{},w:{}};return S.weeks[S.wk]}
 
 // ═══ STORAGE ═══
-function save(){try{localStorage.setItem('dy_p',JSON.stringify(S.plan));localStorage.setItem('dy_w',JSON.stringify(S.weeks));localStorage.setItem('dy_se',JSON.stringify(S.savedExtras));localStorage.setItem('dy_h',JSON.stringify(S.history))}catch(e){}}
+function saveSupps(){try{localStorage.setItem('dy_supps',JSON.stringify(suppState.supps));localStorage.setItem('dy_sc',JSON.stringify(suppState.checked))}catch(e){}}
+function loadSupps(){try{var s=localStorage.getItem('dy_supps');if(s)suppState.supps=JSON.parse(s);var c=localStorage.getItem('dy_sc');if(c)suppState.checked=JSON.parse(c)}catch(e){}}
+function save(){try{localStorage.setItem('dy_p',JSON.stringify(S.plan));localStorage.setItem('dy_w',JSON.stringify(S.weeks));localStorage.setItem('dy_se',JSON.stringify(S.savedExtras));localStorage.setItem('dy_h',JSON.stringify(S.history));saveSupps()}catch(e){}}
 function load(){try{
   var p=localStorage.getItem('dy_p');if(p)S.plan=JSON.parse(p);
   var w=localStorage.getItem('dy_w');if(w)S.weeks=JSON.parse(w);
@@ -170,6 +212,7 @@ function load(){try{
   var oh=localStorage.getItem('diyetim_history');if(oh)S.history=JSON.parse(oh);
   ['diyetim_assign','diyetim_notes','diyetim_extras','diyetim_water','diyetim_plan','diyetim_savedExtras','diyetim_history','diyetim_selDay','diyetim_dark'].forEach(function(k){localStorage.removeItem(k)});save()}
   updateDarkToggle();
+  loadSupps();
 }catch(e){console.error(e)}}
 
 // ═══ FREQUENCY LOGIC ═══
@@ -187,7 +230,7 @@ function dayFilled(d){if(!S.plan)return 0;var a=W().a;return S.plan.slots.filter
 function goTab(t){S.tab=t;document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active')});document.getElementById('view-'+t).classList.add('active');document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.toggle('active',b.dataset.tab===t)});document.getElementById('mainScroll').scrollTop=0;render()}
 
 // ═══ RENDERING ═══
-function render(){renderHeader();if(S.tab==='planner')renderPlanner();if(S.tab==='nutrition')renderNutrition();if(S.tab==='history')renderHistory();if(S.tab==='settings')renderSavedExtras()}
+function render(){renderHeader();if(S.tab==='planner')renderPlanner();if(S.tab==='nutrition')renderNutrition();if(S.tab==='history')renderHistory();if(S.tab==='settings'){renderSavedExtras();renderSuppSettings()}}
 function renderHeader(){var sub=document.getElementById('headerSub'),pi=document.getElementById('planInfo');if(S.plan){sub.textContent=S.plan.dietitian||'Plan yüklendi';pi.style.display='flex';document.getElementById('planInfoText').textContent=S.plan.dietitian||'';document.getElementById('planInfoWeek').textContent=weekLabel(S.wk)}else{sub.textContent='Plan yüklenmedi';pi.style.display='none'}}
 
 function htmlWeekNav(){var isNow=S.wk===todayWK();return '<div class="week-nav"><button class="week-nav-btn" onclick="changeWeek(-1)">‹</button><div class="week-nav-center"><div class="week-nav-label">'+weekLabel(S.wk)+'</div>'+(isNow?'':'<span class="week-nav-today" onclick="goToday()">Bugüne Dön</span>')+'</div><button class="week-nav-btn" onclick="changeWeek(1)">›</button></div>'}
@@ -195,7 +238,11 @@ function htmlWeekNav(){var isNow=S.wk===todayWK();return '<div class="week-nav">
 function htmlDayStrip(){var dates=weekDates(S.wk),now=new Date(),h='<div class="day-strip">';for(var d=0;d<7;d++){var isActive=d===S.day,isToday=sameDay(dates[d],now),filled=dayFilled(d)>0;h+='<button class="day-chip'+(isActive?' active':'')+(isToday?' today':'')+(filled?' filled':'')+'" onclick="selDay('+d+')"><span>'+DAYS[d]+'</span><span>'+dates[d].getDate()+'</span></button>'}return h+'</div>'}
 
 function renderPlanner(){var el=document.getElementById('plannerContent');if(!S.plan){el.innerHTML='<div class="empty-state"><div class="empty-icon">🥗</div><div class="empty-title">Henüz plan yüklenmedi</div><div class="empty-desc"><a onclick="goTab(\'settings\')">Ayarlar</a> sekmesinden plan yükleyin.</div></div>';return}
-var d=S.day,wk=W(),h=htmlWeekNav()+htmlDayStrip()+'<div class="slots-container">';
+var d=S.day,wk=W(),ss=suppSummary(d),ssColor=ss.taken>=ss.total?'var(--green)':ss.taken>0?'var(--amber)':'var(--text3)';
+var h=htmlWeekNav()+htmlDayStrip();
+// Supplement daily badge
+h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:0 16px 8px"><span style="font-size:12px;font-weight:700;color:var(--text2)">'+DAY_FULL[d]+'</span><div class="supp-badge" style="background:'+ssColor+'18;color:'+ssColor+'">💊 '+ss.taken+'/'+ss.total+'</div></div>';
+h+='<div class="slots-container">';
 // Water
 var wml=dayWater(d);h+='<div class="water-section"><div class="water-header"><span class="water-label">💧 Su Takibi</span><span class="water-total">'+(wml/1000).toFixed(1)+'<span> L</span></span></div><div class="water-btns">';
 WATER_OPTS.forEach(function(wo){h+='<button class="water-btn" onclick="addWater('+d+','+wo.ml+')"><span>'+wo.label+'</span><span class="water-btn-sub">'+wo.sub+'</span></button>'});
@@ -205,6 +252,9 @@ S.plan.slots.forEach(function(sl){var key=d+'-'+sl.id,aid=wk.a[key],aopt=aid?sl.
 h+='<div class="slot-card"><div class="slot-header"><span class="slot-label">'+esc(sl.label)+'</span><span class="slot-time">'+esc(sl.time||'')+'</span></div>';
 if(aopt){var n=aopt.nutrition;h+='<div class="slot-assigned" onclick="openSheet(\''+sl.id+'\')"><div><div class="slot-assigned-name">'+esc(aopt.name)+'</div><div style="font-size:12px;color:var(--text2);margin-top:2px">'+(n?n.kcal:'-')+' kcal · P'+(n?n.protein:0)+' K'+(n?n.carb:0)+' Y'+(n?n.fat:0)+'</div></div><button class="slot-remove" onclick="event.stopPropagation();unassign(\''+key+'\')">×</button></div>'}
 else{h+='<div class="slot-empty" onclick="openSheet(\''+sl.id+'\')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Seçenek Ata</div>'}
+// Supplement chips inside slot card
+var slSupps=suppsBySlot(sl.id);
+if(slSupps.length){h+='<div class="supp-row">';slSupps.forEach(function(sp){var taken=isSuppTaken(sp.id,d),col=suppColor(sp.name);h+='<button class="supp-chip'+(taken?' taken':'')+'" onclick="toggleSupp(\''+sp.id+'\','+d+')" style="color:'+col+';border-color:'+(taken?col:col+'40')+';background:'+(taken?col+'30':col+'15')+'" title="'+esc(sp.note||'')+'">'+(taken?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 1.5L3 9a5.66 5.66 0 0 0 8 8l7.5-7.5a5.66 5.66 0 0 0-8-8z"/><line x1="8" y1="16" x2="16" y2="8" opacity="0.4"/></svg>')+'<span>'+esc(sp.name)+'</span>'+(sp.dose>1?'<span style="opacity:.7">×'+sp.dose+'</span>':'')+'</button>'});h+='</div>'}
 if(extras.length){h+='<div>';for(var i=0;i<extras.length;i++){var e=extras[i];h+='<div class="extra-item"><div><span class="extra-item-name">'+esc(e.name)+'</span><br><span class="extra-item-info">'+e.kcal+' kcal · P'+(e.protein||0)+' K'+(e.carb||0)+' Y'+(e.fat||0)+'</span></div><button class="extra-remove" onclick="rmExtra(\''+key+'\','+i+')">×</button></div>'}h+='</div>'}
 h+='<div class="add-extra-btn" onclick="openExtraSheet(\''+key+'\')">+ Ekstra yiyecek ekle</div>';
 if(note){h+='<div class="note-display" onclick="this.style.display=\'none\';this.nextElementSibling.style.display=\'block\';this.nextElementSibling.focus()">📝 '+esc(note)+'</div><textarea class="note-area" style="display:none" placeholder="Not ekle..." onblur="saveNote(\''+key+'\',this.value)" oninput="autoGrow(this)">'+esc(note)+'</textarea>'}
@@ -234,6 +284,45 @@ for(var i=S.history.length-1;i>=0;i--){var x=S.history[i];h+='<div class="histor
 h+='<div class="settings-section"><button class="btn btn-danger" onclick="clearHist()">Geçmişi Temizle</button></div>';el.innerHTML=h}
 function renderSavedExtras(){var el=document.getElementById('savedExtrasList');if(!el)return;if(!S.savedExtras.length){el.innerHTML='<p style="font-size:12px;color:var(--text3)">Henüz kayıtlı ekstra yok.</p>';return}
 var h='';S.savedExtras.forEach(function(e,i){h+='<div class="saved-extra"><div><span class="saved-extra-name">'+esc(e.name)+'</span><br><span class="saved-extra-info">'+e.kcal+' kcal · P'+(e.protein||0)+' K'+(e.carb||0)+' Y'+(e.fat||0)+'</span></div><button class="extra-remove" onclick="event.stopPropagation();rmSavedExtra('+i+')">×</button></div>'});el.innerHTML=h}
+
+// ═══ SUPPLEMENT SETTINGS ═══
+var suppEditId=null;
+function slotLabel(sid){if(!S.plan)return sid;var sl=S.plan.slots.find(function(x){return x.id===sid});return sl?sl.label:sid}
+function slotOptions(){if(!S.plan)return'';return S.plan.slots.map(function(sl){return'<option value="'+sl.id+'">'+esc(sl.label)+'</option>'}).join('')}
+
+function renderSuppSettings(){var el=document.getElementById('suppList');if(!el)return;var supps=getSupps();
+if(!supps.length){el.innerHTML='<p style="font-size:12px;color:var(--text3)">Henüz takviye eklenmedi.</p>';return}
+var h='';supps.forEach(function(s,i){var col=suppColor(s.name);
+h+='<div class="supp-settings-item"><div style="flex:1"><div style="display:flex;align-items:center;gap:6px"><span class="supp-dot" style="background:'+col+'"></span><span class="supp-settings-name">'+esc(s.name)+'</span><span style="font-size:11px;color:var(--text3)">×'+s.dose+' '+esc(s.unit)+'</span></div><div class="supp-settings-detail" style="padding-left:14px">'+esc(slotLabel(s.slotId))+(s.note?' — '+esc(s.note):'')+'</div></div><div class="supp-settings-actions"><button onclick="openSuppForm(\''+s.id+'\')" style="color:var(--blue);cursor:pointer;background:none;border:none;font-family:inherit">✎</button><button onclick="deleteSupp(\''+s.id+'\')" style="color:var(--red);cursor:pointer;background:none;border:none;font-family:inherit">×</button></div></div>'});
+el.innerHTML=h}
+
+function openSuppForm(id){var fc=document.getElementById('suppFormContainer');if(!fc)return;
+if(id==='new'){suppEditId='new';var h='<div class="supp-form"><div style="font-size:13px;font-weight:800;color:var(--text2);margin-bottom:8px">Yeni Takviye</div>';
+h+='<label>Ad</label><input id="sfName" placeholder="ör: Zinc">';
+h+='<div class="supp-form-row"><div style="flex:0 0 80px"><label>Doz</label><input id="sfDose" type="number" min="1" value="1"></div><div style="flex:1"><label>Birim</label><input id="sfUnit" value="kapsül" placeholder="kapsül, tablet, damla..."></div></div>';
+h+='<label>Öğün</label><select id="sfSlot">'+slotOptions()+'</select>';
+h+='<label>Not</label><input id="sfNote" placeholder="ör: yemekle birlikte">';
+h+='<div class="supp-form-btns"><button class="btn btn-primary btn-sm" style="flex:1" onclick="saveSupp()">Kaydet</button><button class="btn btn-outline btn-sm" style="flex:1" onclick="closeSuppForm()">İptal</button></div></div>';
+fc.innerHTML=h}
+else{var s=getSupps().find(function(x){return x.id===id});if(!s)return;suppEditId=id;
+var h='<div class="supp-form"><div style="font-size:13px;font-weight:800;color:var(--text2);margin-bottom:8px">Takviye Düzenle</div>';
+h+='<label>Ad</label><input id="sfName" value="'+esc(s.name)+'">';
+h+='<div class="supp-form-row"><div style="flex:0 0 80px"><label>Doz</label><input id="sfDose" type="number" min="1" value="'+s.dose+'"></div><div style="flex:1"><label>Birim</label><input id="sfUnit" value="'+esc(s.unit)+'"></div></div>';
+h+='<label>Öğün</label><select id="sfSlot">'+slotOptions()+'</select>';
+h+='<label>Not</label><input id="sfNote" value="'+esc(s.note||'')+'">';
+h+='<div class="supp-form-btns"><button class="btn btn-primary btn-sm" style="flex:1" onclick="saveSupp()">Kaydet</button><button class="btn btn-outline btn-sm" style="flex:1" onclick="closeSuppForm()">İptal</button></div></div>';
+fc.innerHTML=h;document.getElementById('sfSlot').value=s.slotId}}
+
+function closeSuppForm(){var fc=document.getElementById('suppFormContainer');if(fc)fc.innerHTML='';suppEditId=null}
+
+function saveSupp(){var name=document.getElementById('sfName').value.trim();if(!name)return;
+var obj={name:name,dose:+(document.getElementById('sfDose').value)||1,unit:document.getElementById('sfUnit').value.trim()||'kapsül',slotId:document.getElementById('sfSlot').value,note:document.getElementById('sfNote').value.trim()};
+if(suppEditId==='new'){obj.id='supp-'+Date.now();getSupps().push(obj)}
+else{var supps=getSupps();for(var i=0;i<supps.length;i++){if(supps[i].id===suppEditId){supps[i]=Object.assign(supps[i],obj);break}}}
+saveSupps();closeSuppForm();renderSuppSettings()}
+
+function deleteSupp(id){if(!confirm('Bu takviyeyi silmek istiyor musunuz?'))return;
+suppState.supps=getSupps().filter(function(s){return s.id!==id});saveSupps();renderSuppSettings()}
 
 // ═══ ACTIONS ═══
 function selDay(d){S.day=d;render()}
@@ -275,7 +364,7 @@ function importPlan(){var area=document.getElementById('importArea'),msg=documen
 try{var d=JSON.parse(raw);if(!d.slots||!Array.isArray(d.slots))throw new Error('slots dizisi eksik');d.slots.forEach(function(s){if(!s.id||!s.label||!Array.isArray(s.options))throw new Error('Slot "'+s.id+'" hatalı');s.options.forEach(function(o){if(!o.id||!o.name||typeof o.maxPerWeek!=='number')throw new Error('Seçenek "'+o.id+'" hatalı')})});
 S.plan=d;save();msg.innerHTML='<div class="msg msg-ok">Plan yüklendi! ✓</div>';area.value='';render();setTimeout(function(){goTab('planner')},600)}catch(e){msg.innerHTML='<div class="msg msg-err">Hata: '+esc(e.message)+'</div>'}}
 function loadSample(){S.plan=JSON.parse(JSON.stringify(SAMPLE));save();document.getElementById('importMsg').innerHTML='<div class="msg msg-ok">Örnek plan yüklendi! ✓</div>';render();setTimeout(function(){goTab('planner')},600)}
-function exportData(){var b=new Blob([JSON.stringify({plan:S.plan,weeks:S.weeks,savedExtras:S.savedExtras,history:S.history},null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='diyetim-backup.json';a.click()}
+function exportData(){var b=new Blob([JSON.stringify({plan:S.plan,weeks:S.weeks,savedExtras:S.savedExtras,history:S.history,supplements:getSupps(),suppChecked:suppState.checked},null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='diyetim-backup.json';a.click()}
 function archiveWeek(){if(!S.plan)return alert('Aktif plan yok.');if(!confirm('Bu haftayı arşivlemek istiyor musunuz?'))return;var w=W();S.history.push({week:S.wk,dietitian:S.plan.dietitian,plan:JSON.parse(JSON.stringify(S.plan)),a:JSON.parse(JSON.stringify(w.a)),n:JSON.parse(JSON.stringify(w.n)),x:JSON.parse(JSON.stringify(w.x)),w:JSON.parse(JSON.stringify(w.w)),at:new Date().toISOString()});delete S.weeks[S.wk];save();render();alert('Arşivlendi.')}
 function resetWeek(){if(!confirm('Bu haftanın verilerini sıfırlamak istiyor musunuz?'))return;delete S.weeks[S.wk];save();render()}
 function clearHist(){if(!confirm('Tüm geçmişi silmek istiyor musunuz?'))return;S.history=[];save();renderHistory()}
